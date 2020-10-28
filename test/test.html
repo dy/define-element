@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<body>
+<script src="../index.js"></script>
+
+<template is="custom-element">
+  <x-counter count:number="0">
+    <output id="count">{{ count }}</output>
+    <button id="inc">+</button><button id="dec">‐</button>
+  </x-counter>
+  <script scoped>
+    // ids are kept local per-instance
+    inc.onclick = e => this.props.count++
+    dec.onclick = e => this.props.count--
+  </script>
+</template>
+
+<x-counter count="0">123</x-counter>
+
+</body>
