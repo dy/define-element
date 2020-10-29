@@ -18,8 +18,12 @@ class ElementTemplate extends HTMLTemplateElement {
   }
 
   #init() {
-    const element = this.content.querySelector('*:not(script), :not(style)');
+    const element = this.content.querySelector(':not(script):not(style)');
+
+    // refs
     const ids = this.content.querySelectorAll('[id]')
+
+    // props
     const propTypes = {}, defaults = {}
     ;[...element.attributes].forEach(({name, value}) => {
       let [prop, type] = name.split(':')
@@ -27,6 +31,15 @@ class ElementTemplate extends HTMLTemplateElement {
       defaults[prop] = value
     })
 
+    // template parts
+    // FIXME: there should come something from first releases of spect/h
+    // const nodes = element.querySelectorAll('*'), parts = []
+    // nodes.forEach(node => {
+    //   // node.attributes
+    //   node.
+    // })
+
+    // script
     let init
     const script = this.content.querySelector('script');
     if (script.type === 'module') {
@@ -37,21 +50,28 @@ class ElementTemplate extends HTMLTemplateElement {
       init = new Function(`refs`, `with(refs){${script.innerHTML}}`)
     }
 
+    // style
     const style = this.content.querySelector('style')
 
+    // define custom element
     let ex = element.getAttribute('is'), Root = ex ? document.createElement(ex).constructor : HTMLElement
 
-    // define custom element
     customElements.define(element.localName, class extends Root {
       #refs = {}
       constructor() {
         super()
-        // setup refs
+
+        // refs
         ids.forEach(({id}) => id in window ? null : Object.defineProperty(this.#refs, id, { get: () => this.querySelector('#' + id) }))
 
-        // assign props
+        // props
+        // FIXME: should take in observables
         this.props = props(this, propTypes)
-        this.addEventListener('prop', e=> console.log('prop changed', this.props.count))
+        this.addEventListener('prop', e => console.log('prop changed', this.props.count))
+
+        // params
+        // FIXME: should take in observables
+        this.params = {}
       }
       connectedCallback() {
         // prerender defined children before actual adding to DOM
