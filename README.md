@@ -153,7 +153,7 @@ Value | `{{ foo }}` | `params.foo` |
 Property | `{{ foo.bar }}` | `params.foo.bar` | Property access is path-safe and allows null-ish paths
 Function call | `{{ foo(bar) }}` | `params.foo`, `params.bar` | Only function invocation is supported, not properties
 Method call | `{{ foo.bar() }}` | `params.foo.bar` | Cannot be called via `.call` or `.apply`
-Pipe | `{{ bar |> foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}`
+Pipe | `{{ bar \|> foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}`
 Default fallback | `{{ foo ?? bar }}` | `params.foo`, `params.bar` |
 Inversion | `{{ !foo }}` | `params.foo` |
 Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
