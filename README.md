@@ -158,7 +158,7 @@ Default fallback | `{{ foo ?? bar }}` | `params.foo`, `params.bar` |
 Inversion | `{{ !foo }}` | `params.foo` |
 Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Primitive literals | `{{ 'foo' }}`, `{{ true }}`, `{{ 0.1 }}` | |
-Boolean operators | `{{ foo && bar || baz }}` | `params.foo`, `params.bar`, `params.baz` |
+Boolean operators | `{{ foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Comparison | `{{ foo === 1 }}` | `params.foo` |
 Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
 
