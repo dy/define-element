@@ -161,6 +161,7 @@ Primitive literals | `{{ 'foo' }}`, `{{ true }}`, `{{ 0.1 }}` | |
 Boolean operators | `{{ foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Comparison | `{{ foo === 1 }}` | `params.foo` |
 Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
+Loop | `{{ a, b, c in d }}` | `params.d` | Used for `:each` directive only
 
 Changing any of the `params` automatically rerenders the template.
 
