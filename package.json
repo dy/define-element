@@ -1,0 +1,39 @@
+{
+  "name": "element-defs",
+  "version": "0.0.0",
+  "description": "Template, defining custom elements",
+  "main": "index.js",
+  "scripts": {
+    "start": "chokidar \"*.js\" -c \"npm run build\"",
+    "build": "esbuild index.js --bundle --outdir=dist --sourcemap",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spectjs/element-defs.git"
+  },
+  "keywords": [
+    "uce-template",
+    "declarative-custom-element",
+    "vue3",
+    "reactive",
+    "spect",
+    "custom-element",
+    "web-components",
+    "element-props",
+    "template-parts"
+  ],
+  "author": "dmitry iv.",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/spectjs/element-defs/issues"
+  },
+  "homepage": "https://github.com/spectjs/element-defs#readme",
+  "dependencies": {
+    "@github/template-parts": "^0.2.3",
+    "element-props": "^1.3.1"
+  },
+  "devDependencies": {
+    "chokidar-cli": "^2.1.0"
+  }
+}
