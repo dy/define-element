@@ -1,46 +1,41 @@
 # element-defs
 
-Define custom elements declaratively, like `<defs>` for HTML.
-Ref [spect#240](https://github.com/spectjs/spect/issues/240).
+`<element-defs>` is a custom element, enabling declarative custom elements for HTML, like `<defs>` in SVG.
 
-Sweet parts:
+### Sweet parts
 
-* proposal-compatible
-* shadow dom
-* :sugar: scoped script for shorter init
-* :sugar: scoped style
-* :sugar: sandboxed script
+* declarative custom elements
+* declarative prop types
+* declarative shadow dom
+* scoped script
+* scoped style
+* sandboxed script (coming)
 * `params` for changing template parts
-* `parts` to access template elements
-* optional `template`
-* template processor with `:each`, `:if` directives
+* `parts` for access to template elements
+* `props` for accessing / changing props
+* elaborate template processor with loops & conditionals
+* `connected`, `disconnected` events
 
-- [`<script scoped>`](https://gist.github.com/dy/2124c2dfcbdd071f38e866b85436c6c5)
-- [`<style scoped>`](https://github.com/samthor/scoped)
-- [element.props](https://github.com/spectjs/element-props)
-- [template parts](https://github.com/github/template-parts) take exported values (they're live out of the box!)
-- [disconnected](https://www.npmjs.com/package/disconnected)
-- [`<script setup>`](https://github.com/vuejs/rfcs/blob/sfc-improvements/active-rfcs/0000-sfc-script-setup.md) by default
-
+<!-- - [disconnected](https://www.npmjs.com/package/disconnected) -->
 
 ```html
 <element-defs>
-  <x-time time:Date interval:String>
-    <template shadowmode="open">{{ time.toLocaleTimeString() }}</template>
+  <x-time>
+    <template>{{ time.toLocaleTimeString() }}</template>
 
-    <script setup scoped type="module">
-      let id
-      this.onconnected = () => id = setInterval(() => time = new Date(), 1000)
+    <script scoped>
+      let id = setInterval(() => this.props.time = new Date(), 1000)
+
       this.ondisconnected = () => clearInterval(id)
     </script>
 
     <style scoped>
-      :host {}
+      :host { font-family: monospace; }
     </style>
   </x-time>
 </element-defs>
 
-<x-time start="2020-02-02"/>
+<x-time></x-time>
 ```
 
 
@@ -48,7 +43,7 @@ Sweet parts:
 
 ### Element Definition
 
-Element is defined by example and may contain `template`, `style` and `script` parts.
+Element is defined by-example (similar to `<defs>` in SVG) and may contain `<template>`, `<style>` and `<script>` sections.
 
 ```html
 <element-defs>
@@ -66,74 +61,50 @@ Element is defined by example and may contain `template`, `style` and `script` p
 <element-name></element-name>
 ```
 
-This way, instantiated `<element-name>` automatically receives attributes and content, defined in the template.
+Instances of `<element-name>` automatically receive defined attributes and content.
 
-`<template>` element is optional and defines what child content must be rendered. If not defined, the content is passed from the instance.
-
-There can be multiple template, script and style tags.
+If `<template>` section isn't defined, the instance content preserved as is.
 
 
 ### Properties / Prop Types
 
-Properties and/or prop types are defined in either of two ways.
-
-_1._ As default export from setup script (similar to vue):
+Properties and/or prop types are defined declaratively as custom element attributes:
 
 ```html
-  <x-x>
-    ...
-    <script setup type="module">
-      export default {
-        count: parseInt,
-        b: Boolean,
-        c: String,
-        d: Date,
-        e: null
-      }
-    </script>
-  </x-x>
-```
-
-_2._ As custom element attributes with optional types and default values:
-
-```html
-  <x-x count:int="0" b:boolean c:string d:date e>
-    ...
+<element-defs>
+  <x-x count:number="0" flag:boolean text:string time:date value>
+    <template>{{ count }}</template>
     <script scoped>
       console.log(this.props.count) // 0
+      this.props.count++
+      console.log(this.props.count) // 1
     </script>
   </x-x>
+</element-defs>
 ```
 
-Type case doesn't matter in case of attributes. Also attributes support `float`, `int` and `bool` helper type keywords.
+Available types are any primitives (attribute case doesn't matter):
 
-Supported types are any of the primitives:
+* `:string` for _String_
+* `:boolean` for _Boolean_
+* `:number` for _Number_
+* `:date` for _Date_
+* `:array` for _Array_
+* `:object` for _Object_ via `JSON.parse`
+* no type for automatic detection
 
-* _String_
-* _Date_
-* _Boolean_
-* _Number_
-* _Array_
-* _Object_
+<!-- * `:int` for _Number_ via `parseInt` -->
+<!-- * `:time` for _Date_ with days cutoff -->
+<!-- * `:list` for _Array_ from CSV -->
 
-Or a function returning string, like `JSON.parse`, `parseInt`, `parseFloat` etc.
+Instance props values are available under `element.props`, changing any of `element.props.*` is reflected in attributes.
 
-Default value is automatically converted to the indicated type.
-
-If type is not defined, it's chosen between `number`, `boolean` or `` automatically.
-
-Properties can be read as:
-
-```js
-element.props.count
-```
-
-Properties are reflected automatically as attributes.
+See [element-props](https://github.com/spectjs/element-props).
 
 
 ### Template Parts
 
-`<template>` supports [template parts](https://github.com/w3c/webcomponents/blob/159b1600bab02fe9cd794825440a98537d53b389/proposals/Template-Instantiation.md#2-use-cases) via [polyfill](https://github.com/github/template-parts) with elaborate processor:
+`<template>` supports [template parts](https://github.com/w3c/webcomponents/blob/159b1600bab02fe9cd794825440a98537d53b389/proposals/Template-Instantiation.md#2-use-cases) with elaborate processor:
 
 ```html
 <element-defs>
@@ -141,6 +112,9 @@ Properties are reflected automatically as attributes.
     <template>
       <h1>{{ user.name }}</h1>Email: <a href="mailto:{{ user.email }}">{{ user.email }}</a>
     </template>
+    <script scoped>
+      this.params.user = { name: 'Harry Krishna', email: 'krishn@hari.om' }
+    </script>
   </my-element>
 </element-defs>
 ```
@@ -153,19 +127,20 @@ Value | `{{ foo }}` | `params.foo` |
 Property | `{{ foo.bar }}` | `params.foo.bar` | Property access is path-safe and allows null-ish paths
 Function call | `{{ foo(bar) }}` | `params.foo`, `params.bar` | Only function invocation is supported, not properties
 Method call | `{{ foo.bar() }}` | `params.foo.bar` | Cannot be called via `.call` or `.apply`
-Pipe | `{{ bar \|> foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}`
+<!-- Pipe | `{{ bar \|> foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}` -->
 Default fallback | `{{ foo ?? bar }}` | `params.foo`, `params.bar` |
 Inversion | `{{ !foo }}` | `params.foo` |
 Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Primitive literals | `{{ 'foo' }}`, `{{ true }}`, `{{ 0.1 }}` | |
 Boolean operators | `{{ foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Comparison | `{{ foo === 1 }}` | `params.foo` |
-Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
+<!-- Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes -->
 Loop | `{{ a, b, c in d }}` | `params.d` | Used for `:each` directive only
+Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` | Only CSS calc operators are supported, the result is expected to be only numeric
 
-Changing any of the `params` automatically rerenders the template.
+Parsed template parts are available as `element.params` object. Changing any of the `params.*` automatically rerenders the template.
 
-Parts support reactive types as well: _Promise_, _Observable_, _AsyncIterable_, _Function_ in which case update happens by changing the reactive state:
+Parts support reactive types as well: _Promise_, _Observable_, _AsyncIterable_, in that case update happens by changing the reactive state:
 
 ```js
 <template>{{ count }}</template>
@@ -175,26 +150,16 @@ Parts support reactive types as well: _Promise_, _Observable_, _AsyncIterable_, 
 ```
 
 This way, for example, rxjs can be streamed directly to the template.
-Null or false parts remove attribute.
-Once template parts are shipped natively in browser, the polyfill is expected to be removed.
 
-Parts can be alternatively exported in setup script as live bindings, changing reactively:
-
-```html
-<script setup>
-export let count = 1
-
-// update count value
-count = 2
-</script>
-```
+Template parts are implemented via [polyfill](https://github.com/github/template-parts), when shipped natively the polyfill is expected to be removed.
 
 
-### Scripts
+### Script
 
-There are two ways to attach scripts to the defined element.
+<!-- There are two ways to attach scripts to the defined element. -->
+<!-- _First_ is via `scoped` script attribute. That enables script to run with `this` defined as _element_ instance, instead of _window_. Also, it automatically exposes internal element references by `part`. -->
 
-_First_ is via `scoped` script attribute. That enables script to run with `this` defined as _element_ instance, instead of _window_. Also, it automatically exposes internal element references by `part`.
+Script runs in `connectedCallback` with children and properties parsed and present on the element. If `scoped` attribute is present, `this` points to the _element_ instance, instead of _window_.
 
 ```html
 <element-defs>
@@ -211,8 +176,7 @@ _First_ is via `scoped` script attribute. That enables script to run with `this`
   </main-header>
 </element-defs>
 ```
-
-The scoped script is run in `connectedCallback` with children and properties parsed and present on the element.
+<!--
 
 _Second_ method is via custom element constructor, as proposed in [declarative custom elements](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md). It provides more granular control over constructor, callbacks and attributes.
 At the same time, it would require manual control over children, props and reactivity.
@@ -223,16 +187,20 @@ At the same time, it would require manual control over children, props and react
     <template></template>
     <script type="module">
       export default class MyCustomElement extends HTMLElement {
-          constructor() {
-              super()
-          }
-          connectedCallback() {}
-          disconnectedCallback() {}
+        constructor() {
+          super()
+        }
+        connectedCallback() {}
+        disconnectedCallback() {}
       }
     </script>
   </my-element>
 </element-defs>
 ```
+-->
+
+See proposal discussions: [1](https://discourse.wicg.io/t/script-tags-scoped-to-shadow-root-script-scoped-src/4726/2), [2](https://discourse.wicg.io/t/proposal-chtml/4716/9) and [`<script scoped>` polyfill](https://gist.github.com/dy/2124c2dfcbdd071f38e866b85436c6c5) implementation.
+
 
 ### Styles
 
@@ -255,6 +223,8 @@ Styles can be defined either globally or with `scoped` attribute, limiting CSS t
 </element-defs>
 ```
 
+See [`<style scoped>`](https://github.com/samthor/scoped).
+
 
 ### Shadow DOM
 
@@ -271,34 +241,30 @@ Can be defined via `shadowmode` property.
 
 ### Loops
 
-Iteration is organized via `:each` directive as follows:
+Iteration is organized via `:each` directive:
 
 ```html
-<ul is=my-list>
-  <template>
-    <li :each="{{ item in items }}">{{ item.text }}</li>
-  </template>
-  <script scoped>
-    this.params.items = [1,2,3]
-  </script>
-</ul>
+<element-defs>
+  <ul is=my-list>
+    <template>
+      <li :each="{{ item, index in items }}" id="item-{{ index }}">{{ item.text }}</li>
+    </template>
+    <script scoped>
+      this.params.items = [1,2,3]
+    </script>
+  </ul>
+</element-defs>
 
 <ul is=my-list></ul>
 ```
 
-It may take either iterable param or a number, in which case it will be used as counter:
-
-```html
-<span :each="{{ i in 10 }}">.</span>
-```
-
-Note that item name is optional.
+Note that `index` starts with `1`, not `0`.
 
 Cases:
 
 ```html
 <li :each="{{ item, index in array }}">
-<li :each="{{ key, value in object }}">
+<li :each="{{ key, value, index in object }}">
 <li :each="{{ count in number }}">
 ```
 
