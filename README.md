@@ -9,8 +9,8 @@
     <template>{{ time.toLocaleTimeString() }}</template>
 
     <script scoped>
-      let id = setInterval(() => this.props.time = new Date(), 1000)
-
+      let id
+      this.onconnected = () => id = setInterval(() => this.params.time = new Date(), 1000)
       this.ondisconnected = () => clearInterval(id)
     </script>
 
