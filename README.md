@@ -36,6 +36,7 @@
 * elaborate template processor with loops & conditionals
 * `connected`, `disconnected` events
 * easy slots
+* built-in reactivity
 
 
 ## Documentation
@@ -369,8 +370,6 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 ### Clock
 
 ```html
-<script src="...element-template.js"></script>
-...
 <element-defs>
   <x-clock>
     <template>
@@ -395,7 +394,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 
 ```html
 <element-defs>
-  <x-counter>
+  <x-counter count:number="0">
     <template>
       <output>{{ count }}</output>
       <button part="inc">+</button>
