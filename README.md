@@ -126,16 +126,16 @@ Value | `{{ foo }}` | `params.foo` |
 Property | `{{ foo.bar }}` | `params.foo.bar` | Property access is path-safe and allows null-ish paths
 Function call | `{{ foo(bar) }}` | `params.foo`, `params.bar` | Only function invocation is supported, not properties
 Method call | `{{ foo.bar() }}` | `params.foo.bar` | Cannot be called via `.call` or `.apply`
-<!-- Pipe | `{{ bar \|> foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}` -->
 Default fallback | `{{ foo ?? bar }}` | `params.foo`, `params.bar` |
 Inversion | `{{ !foo }}` | `params.foo` |
 Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Primitive literals | `{{ 'foo' }}`, `{{ true }}`, `{{ 0.1 }}` | |
 Boolean operators | `{{ foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Comparison | `{{ foo === 1 }}` | `params.foo` |
-<!-- Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes -->
 Loop | `{{ a, b, c in d }}` | `params.d` | Used for `:each` directive only
 Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` | Only CSS calc operators are supported, the result is expected to be only numeric
+<!-- Pipe | `{{ bar \|> foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}` -->
+<!-- Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes -->
 
 Parsed template parts are available as `element.params` object. Changing any of the `params.*` automatically rerenders the template.
 
