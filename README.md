@@ -15,6 +15,7 @@
 * `props` for accessing / changing props
 * elaborate template processor with loops & conditionals
 * `connected`, `disconnected` events
+* easy slots
 
 <!-- - [disconnected](https://www.npmjs.com/package/disconnected) -->
 
@@ -239,6 +240,26 @@ Can be defined via `shadowmode` property.
 </my-element>
 ```
 
+### Slots
+
+Content can be redirected either from instances or inheriting elements via slots mechanism:
+
+```html
+<element-defs>
+  <my-element>
+    <template>
+      <h1><slot name="title"></slot></h1>
+      <p><slot name="content">{{ children }}</slot></p>
+    </template>
+  </my-element>
+</element-defs>
+
+<my-element>
+  <template slot="title">Hare Krishna!</template>
+  <template slot="content">Srila Prabhupada Ki Jay!</template>
+</my-element>
+```
+
 ### Loops
 
 Iteration is organized via `:each` directive:
@@ -285,6 +306,29 @@ To optionally display an element, use `:if`-`:else-if`-`:else`:
 <span :else-if="{{ status === 1 }}">Active</span>
 <span :else>Finished</span>
 ```
+
+
+### Lifecycle events
+
+There are `connected`, `disconnected` and `attributechanged` events generated to simplify instance lifecycle management. They're available as `onconnected`, `ondisconnected` and `onattributechanged` event handlers as well.
+
+```html
+<element-defs>
+  <x-element>
+    <script scoped>
+      // by default the script is run when instance is `connected`
+      // to have children and attributes available
+
+      this.onconnected = () => console.log('connected')
+      this.ondisconnected = () => console.log('disconnected')
+      this.onattributechanged = (e) => console.log('attributechanged', e.attributeChanged, e.newValue, e.oldValue)
+    </script>
+  </x-element>
+</element-defs>
+```
+
+See [disconnected](https://github.com/WebReflection/disconnected), [attributechanged](https://github.com/WebReflection/attributechanged).
+
 
 
 ## Examples
@@ -435,3 +479,5 @@ To optionally display an element, use `:if`-`:else-if`-`:else`:
 ### License
 
 ISC
+
+<p align="center">🕉</p>
