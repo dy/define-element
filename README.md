@@ -2,22 +2,6 @@
 
 `<element-defs>` is a custom element, enabling declarative custom elements for HTML, like `<defs>` in SVG.
 
-### Sweet parts
-
-* declarative custom elements
-* declarative prop types
-* declarative shadow dom
-* scoped script
-* scoped style
-* sandboxed script (coming)
-* `params` for changing template parts
-* `parts` for access to template elements
-* `props` for accessing / changing props
-* elaborate template processor with loops & conditionals
-* `connected`, `disconnected` events
-* easy slots
-
-<!-- - [disconnected](https://www.npmjs.com/package/disconnected) -->
 
 ```html
 <element-defs>
@@ -38,6 +22,20 @@
 
 <x-time></x-time>
 ```
+
+
+* declarative custom elements
+* declarative prop types
+* declarative shadow dom
+* scoped script
+* scoped style
+* sandboxed script (coming)
+* `params` for changing template parts
+* `parts` for access to template elements
+* `props` for accessing / changing props
+* elaborate template processor with loops & conditionals
+* `connected`, `disconnected` events
+* easy slots
 
 
 ## Documentation
