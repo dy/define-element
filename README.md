@@ -472,6 +472,11 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 * [declarative custom elements](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md)
 * [snuggsi](https://github.com/devpunks/snuggsi)
 
+## Refs
+
+* [Template Instantiation proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Template-Instantiation.md)
+* [github/template-parts](https://github.com/github/template-parts)
+* [template-instantiation-polyfill](https://www.npmjs.com/package/template-instantiation-polyfill)
 
 ### License
 
