@@ -133,7 +133,7 @@ Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Primitive literals | `{{ 'foo' }}`, `{{ true }}`, `{{ 0.1 }}` | |
 Boolean operators | `{{ foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Comparison | `{{ foo === 1 }}` | `params.foo` |
-Loop | `{{ a, b, c in d }}` | `params.d` | Used for `:each` directive only
+Loop | `{{ a, b, c in d }}` | `params.d` | Used for `:for` directive only
 Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` | Only CSS calc operators are supported, the result is expected to be only numeric
 <!-- Pipe | `{{ bar \|> foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}` -->
 <!-- Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes -->
@@ -261,13 +261,13 @@ Content can be redirected either from instances or inheriting elements via slots
 
 ### Loops
 
-Iteration is organized via `:each` directive:
+Iteration is organized via `:for` directive:
 
 ```html
 <element-defs>
   <ul is=my-list>
     <template>
-      <li :each="{{ item, index in items }}" id="item-{{ index }}">{{ item.text }}</li>
+      <li :for="{{ item, index in items }}" id="item-{{ index }}">{{ item.text }}</li>
     </template>
     <script scoped>
       this.params.items = [1,2,3]
@@ -283,9 +283,9 @@ Note that `index` starts with `1`, not `0`.
 Cases:
 
 ```html
-<li :each="{{ item, index in array }}">
-<li :each="{{ key, value, index in object }}">
-<li :each="{{ count in number }}">
+<li :for="{{ item, index in array }}">
+<li :for="{{ key, value, index in object }}">
+<li :for="{{ count in number }}">
 ```
 
 ### Conditions
@@ -418,7 +418,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       <input part="text" placeholder="Add Item..." required>
       <button type="submit">Add</button>
       <ul class="todo-list">
-        <li class="todo-item" :each="{{ item in todos }}">{{ item.text }}</li>
+        <li class="todo-item" :for="{{ item in todos }}">{{ item.text }}</li>
       </ul>
     </template>
     <script sandbox>
