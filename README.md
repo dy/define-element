@@ -1,6 +1,6 @@
 # define-element
 
-`<define-element>` is a custom element, enabling declarative custom elements for HTML, like `<defs>` in SVG.
+`<define-element>` enables declarative custom elements for HTML, like `<defs>` in SVG.
 
 
 ```html
