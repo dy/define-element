@@ -1,10 +1,10 @@
-# element-defs
+# define-element
 
-`<element-defs>` is a custom element, enabling declarative custom elements for HTML, like `<defs>` in SVG.
+`<define-element>` is a custom element, enabling declarative custom elements for HTML, like `<defs>` in SVG.
 
 
 ```html
-<element-defs>
+<define-element>
   <x-time>
     <template>{{ time.toLocaleTimeString() }}</template>
 
@@ -18,7 +18,7 @@
       :host { font-family: monospace; }
     </style>
   </x-time>
-</element-defs>
+</define-element>
 
 <x-time></x-time>
 ```
@@ -46,7 +46,7 @@
 Element is defined by-example (similar to `<defs>` in SVG) and may contain `<template>`, `<style>` and `<script>` sections.
 
 ```html
-<element-defs>
+<define-element>
   <element-name prop:type="default">
     <template>
       {{ content }}
@@ -56,7 +56,7 @@ Element is defined by-example (similar to `<defs>` in SVG) and may contain `<tem
   </element-name>
 
   <another-element>...</another-element>
-</element-defs>
+</define-element>
 
 <element-name></element-name>
 ```
@@ -71,7 +71,7 @@ If `<template>` section isn't defined, the instance content preserved as is.
 Properties and/or prop types are defined declaratively as custom element attributes:
 
 ```html
-<element-defs>
+<define-element>
   <x-x count:number="0" flag:boolean text:string time:date value>
     <template>{{ count }}</template>
     <script scoped>
@@ -80,7 +80,7 @@ Properties and/or prop types are defined declaratively as custom element attribu
       console.log(this.props.count) // 1
     </script>
   </x-x>
-</element-defs>
+</define-element>
 ```
 
 Available types are any primitives (attribute case doesn't matter):
@@ -107,7 +107,7 @@ See [element-props](https://github.com/spectjs/element-props).
 `<template>` supports [template parts](https://github.com/w3c/webcomponents/blob/159b1600bab02fe9cd794825440a98537d53b389/proposals/Template-Instantiation.md#2-use-cases) with elaborate processor:
 
 ```html
-<element-defs>
+<define-element>
   <my-element>
     <template>
       <h1>{{ user.name }}</h1>Email: <a href="mailto:{{ user.email }}">{{ user.email }}</a>
@@ -116,7 +116,7 @@ See [element-props](https://github.com/spectjs/element-props).
       this.params.user = { name: 'Harry Krishna', email: 'krishn@hari.om' }
     </script>
   </my-element>
-</element-defs>
+</define-element>
 ```
 
 The processor supports the following expressions:
@@ -162,7 +162,7 @@ Template parts are implemented via [polyfill](https://github.com/github/template
 Script runs in `connectedCallback` with children and properties parsed and present on the element. If `scoped` attribute is present, `this` points to the _element_ instance, instead of _window_.
 
 ```html
-<element-defs>
+<define-element>
   <main-header content:string>
     <template>
       <h1 part="header">{{ content }}</h1>
@@ -174,7 +174,7 @@ Script runs in `connectedCallback` with children and properties parsed and prese
       this.props.content
     </script>
   </main-header>
-</element-defs>
+</define-element>
 ```
 <!--
 
@@ -182,7 +182,7 @@ _Second_ method is via custom element constructor, as proposed in [declarative c
 At the same time, it would require manual control over children, props and reactivity.
 
 ```html
-<element-defs>
+<define-element>
   <my-element>
     <template></template>
     <script type="module">
@@ -195,7 +195,7 @@ At the same time, it would require manual control over children, props and react
       }
     </script>
   </my-element>
-</element-defs>
+</define-element>
 ```
 -->
 
@@ -207,7 +207,7 @@ See proposal discussions: [1](https://discourse.wicg.io/t/script-tags-scoped-to-
 Styles can be defined either globally or with `scoped` attribute, limiting CSS to only component instances.
 
 ```html
-<element-defs name="percentage-bar">
+<define-element name="percentage-bar">
   <template shadowmode="closed">
     <div id="progressbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{root.attributes.percentage.value}}">
       <div id="bar" style="width: {{root.attributes.percentage.value}}%"></div>
@@ -220,7 +220,7 @@ Styles can be defined either globally or with `scoped` attribute, limiting CSS t
     #bar { background-color: #36f; height: 100%; }
     #label { position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; text-align: center; }
   </style>
-</element-defs>
+</define-element>
 ```
 
 See [`<style scoped>`](https://github.com/samthor/scoped).
@@ -244,14 +244,14 @@ Can be defined via `shadowmode` property.
 Content can be redirected either from instances or inheriting elements via slots mechanism:
 
 ```html
-<element-defs>
+<define-element>
   <my-element>
     <template>
       <h1><slot name="title"></slot></h1>
       <p><slot name="content">{{ children }}</slot></p>
     </template>
   </my-element>
-</element-defs>
+</define-element>
 
 <my-element>
   <template slot="title">Hare Krishna!</template>
@@ -264,7 +264,7 @@ Content can be redirected either from instances or inheriting elements via slots
 Iteration is organized via `:for` directive:
 
 ```html
-<element-defs>
+<define-element>
   <ul is=my-list>
     <template>
       <li :for="{{ item, index in items }}" id="item-{{ index }}">{{ item.text }}</li>
@@ -273,7 +273,7 @@ Iteration is organized via `:for` directive:
       this.params.items = [1,2,3]
     </script>
   </ul>
-</element-defs>
+</define-element>
 
 <ul is=my-list></ul>
 ```
@@ -312,7 +312,7 @@ To optionally display an element, use `:if`-`:else-if`-`:else`:
 There are `connected`, `disconnected` and `attributechanged` events generated to simplify instance lifecycle management. They're available as `onconnected`, `ondisconnected` and `onattributechanged` event handlers as well.
 
 ```html
-<element-defs>
+<define-element>
   <x-element>
     <script scoped>
       // by default the script is run when instance is `connected`
@@ -323,7 +323,7 @@ There are `connected`, `disconnected` and `attributechanged` events generated to
       this.onattributechanged = (e) => console.log('attributechanged', e.attributeChanged, e.newValue, e.oldValue)
     </script>
   </x-element>
-</element-defs>
+</define-element>
 ```
 
 See [disconnected](https://github.com/WebReflection/disconnected), [attributechanged](https://github.com/WebReflection/attributechanged).
@@ -335,14 +335,14 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 ### Hello World
 
 ```html
-<element-defs>
+<define-element>
   <welcome-user>
     <template>Hello, {{ name ?? 'guest' }}</template>
     <script scoped>
       this.params.name = await fetch('/user')).json()
     </script>
   </welcome-user>
-</element-defs>
+</define-element>
 
 <welcome-user/>
 ```
@@ -350,7 +350,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 ### Timer
 
 ```html
-<element-defs>
+<define-element>
   <x-timer>
     <template>
       <time part="timer">{{ count }}</time>
@@ -362,7 +362,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       this.onunmount = () => clearInterval(id)
     </script>
   </x-timer>
-</element-defs>
+</define-element>
 
 <x-timer start="0"/>
 ```
@@ -370,7 +370,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 ### Clock
 
 ```html
-<element-defs>
+<define-element>
   <x-clock>
     <template>
       <time datetime="{{ time }}">{{ time.toLocaleTimeString() }}</time>
@@ -385,7 +385,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       :host {}
     </style>
   </x-clock>
-</element-defs>
+</define-element>
 ...
 <x-clock start="17:28"/>
 ```
@@ -393,7 +393,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 ### Counter
 
 ```html
-<element-defs>
+<define-element>
   <x-counter count:number="0">
     <template>
       <output>{{ count }}</output>
@@ -405,14 +405,14 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       this.parts.dec.onclick = e => this.props.count--
     </script>
   </x-counter>
-</element-defs>
+</define-element>
 
 ```
 
 ### Todo list
 
 ```html
-<element-defs>
+<define-element>
   <todo-list>
     <template>
       <input part="text" placeholder="Add Item..." required>
@@ -432,7 +432,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       }
     </script>
   </todo-list>
-</element-defs>
+</define-element>
 
 <todo-list>
   <li>A</li>
@@ -443,7 +443,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 ### Form validator
 
 ```html
-<element-defs>
+<define-element>
   <form is="validator-form">
     <template shadowroot="closed">
       <label for=email>Please enter an email address:</label>
@@ -460,7 +460,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       }
     </script>
   </form>
-</element-defs>
+</define-element>
 
 <form is="validator-form"></form>
 ```
