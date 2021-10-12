@@ -1,0 +1,10 @@
+<template id="foo">
+  <div class="foo {{y}}">{{x}} world</div>
+</template>
+
+<script type="module">
+  import TemplateInstance from '../template-parts.js'
+
+  document.body.appendChild(new TemplateInstance(document.getElementById('foo'), { x: 'Hello', y: 'bar'}))
+  document.body.appendChild(new TemplateInstance(document.getElementById('foo'), { x: 'Hello', y: 'bar'}))
+</script>

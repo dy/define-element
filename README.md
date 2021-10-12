@@ -23,7 +23,6 @@
 <x-time></x-time>
 ```
 
-
 * declarative custom elements
 * declarative prop types
 * declarative shadow dom
