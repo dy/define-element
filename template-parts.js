@@ -4,8 +4,7 @@ const ELEMENT = 1, TEXT = 3
 
 var _processor = new WeakMap(), _parts = new WeakMap();
 export default class TemplateInstance extends DocumentFragment {
-    constructor(template, params, processor = propertyIdentity) {
-        var _a, _b;
+    constructor(template, params, processor = propertyIdentityBooleanCallback) {
         super();
         _processor.set(this, undefined);
         _parts.set(this, undefined);
@@ -15,8 +14,7 @@ export default class TemplateInstance extends DocumentFragment {
         if (Object.getPrototypeOf(this !== TemplateInstance.prototype)) Object.setPrototypeOf(this, TemplateInstance.prototype);
         this.appendChild(template.content.cloneNode(true));
         this._parts = Array.from(collectParts(this));
-        this._processor = processor;
-        (_b = (_a = this._processor).createCallback) === null || _b === undefined ? undefined : _b.call(_a, this, this._parts, params);
+        (this._processor = processor).createCallback?.(this, this._parts, params);
     }
     update(params) {
         this._processor.processCallback(this, this._parts, params);
@@ -181,13 +179,9 @@ export class AttributeValueSetter {
 // processors
 export function createProcessor(processPart) {
     return {
-        createCallback(instance, parts, params) {
-            this.processCallback(instance, parts, params);
-        },
+        createCallback(instance, parts, params) { this.processCallback(instance, parts, params); },
         processCallback(_, parts, params) {
             var _a;
-            if (typeof params !== 'object' || !params)
-                return;
             for (const part of parts) {
                 if (part.expression in params) {
                     const value = (_a = params[part.expression]) !== null && _a !== undefined ? _a : '';
@@ -197,44 +191,31 @@ export function createProcessor(processPart) {
         }
     };
 }
+export const propertyIdentity = createProcessor((part,value) => part.value = String(value));
+export const propertyIdentityOrBooleanAttribute = createProcessor((part, value) => {
+    processBooleanAttribute(part, value) || processPropertyIdentity(part, value);
+});
+export const propertyIdentityBooleanCallback = createProcessor((part, value) => {
+    processCallback(part, value) || processBooleanAttribute(part, value) || processPropertyIdentity(part, value)
+});
+
+
 export function processPropertyIdentity(part, value) {
     part.value = String(value);
 }
 export function processBooleanAttribute(part, value) {
     if (typeof value === 'boolean' &&
         part instanceof AttributeTemplatePart &&
-        typeof part.element[part.attributeName] === 'boolean') {
-        part.booleanValue = value;
+        typeof part.element[part.attributeName] === 'boolean' // FIXME: not sure about 100% correctness of this condition
+    )
+    {
+        part.booleanValue = value; // FIXME: this looks overly implicit and complicated. I'd propose doing update logic here
         return true;
     }
     return false;
 }
-export const propertyIdentity = createProcessor(processPropertyIdentity);
-export const propertyIdentityOrBooleanAttribute = createProcessor((part, value) => {
-    processBooleanAttribute(part, value) || processPropertyIdentity(part, value);
-});
-
-// export function propertyIdentity(parts, params) {
-//     var _a;
-//     for (const part of parts) {
-//         part.value = String((_a = params[part.expression]) !== null && _a !== undefined ? _a : '');
-//     }
-// }
-// export function propertyIdentityOrBooleanAttribute(parts, params) {
-//     for (const part of parts) {
-//         const value = params[part.expression];
-//         // @ts-ignore
-//         console.log(part.attributeName, part.expression, value);
-//         if (typeof value === 'boolean' && part instanceof AttributeTemplatePart) {
-//             if (part.booleanValue && value === false) {
-//                 part.booleanValue = false;
-//             }
-//             else {
-//                 part.value = '';
-//             }
-//         }
-//         else {
-//             part.value = String(value !== null && value !== undefined ? value : '');
-//         }
-//     }
-// }
+export function processCallback(part, value) {
+    if (typeof value !== 'function') return false
+    part.element[part.attributeName] = value
+    return true
+}
