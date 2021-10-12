@@ -1,11 +1,11 @@
 // forked, stripped, patched @github/template-parts
-
+import defaultProcessor from './processor.js'
 const ELEMENT = 1, TEXT = 3
 
 export default class TemplateInstance extends DocumentFragment {
     #parts
     #processor
-    constructor(template, params, processor = propertyIdentityBooleanCallback) {
+    constructor(template, params, processor = defaultProcessor) {
         super();
         // This is to fix an inconsistency in Safari which prevents us from
         // correctly sub-classing DocumentFragment.
@@ -169,49 +169,3 @@ export class AttributeValueSetter {
     }
 }
 
-
-
-// processors
-export function createProcessor(processPart) {
-    return {
-        createCallback(instance, parts, params) { this.processCallback(instance, parts, params); },
-        processCallback(_, parts, params) {
-            var _a;
-            for (const part of parts) {
-                if (part.expression in params) {
-                    const value = (_a = params[part.expression]) !== null && _a !== undefined ? _a : '';
-                    processPart(part, value);
-                }
-            }
-        }
-    };
-}
-export const propertyIdentity = createProcessor((part,value) => part.value = String(value));
-export const propertyIdentityOrBooleanAttribute = createProcessor((part, value) => {
-    processBooleanAttribute(part, value) || processPropertyIdentity(part, value);
-});
-export const propertyIdentityBooleanCallback = createProcessor((part, value) => {
-    processCallback(part, value) || processBooleanAttribute(part, value) || processPropertyIdentity(part, value)
-});
-
-
-export function processPropertyIdentity(part, value) {
-    part.value = String(value);
-}
-export function processBooleanAttribute(part, value) {
-    if (typeof value === 'boolean' &&
-        part instanceof AttributeTemplatePart &&
-        typeof part.element[part.attributeName] === 'boolean' // FIXME: not sure about 100% correctness of this condition
-    )
-    {
-        part.booleanValue = value; // FIXME: this looks overly implicit and complicated. I'd propose doing update logic here
-        return true;
-    }
-    return false;
-}
-export function processCallback(part, value) {
-    if (typeof value !== 'function') return false
-    console.log(part, value)
-    part.element[part.attributeName] = value
-    return true
-}

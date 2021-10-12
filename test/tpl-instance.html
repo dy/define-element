@@ -5,7 +5,16 @@
 <script type="module">
   import TemplateInstance from '../template-parts.js'
 
-  document.body.appendChild(new TemplateInstance(document.getElementById('foo'), { x: 'Hello', y: 'bar', click(e){
-    console.log(e)
-  }}))
+  let instance = new TemplateInstance(
+    document.getElementById('foo'),
+    {
+      x: 'Hello',
+      y: 'bar',
+      click(e){
+        console.log(e)
+      }
+    }
+  )
+
+  document.body.appendChild(instance)
 </script>
