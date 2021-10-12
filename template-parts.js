@@ -3,6 +3,8 @@
 const ELEMENT = 1, TEXT = 3
 
 export default class TemplateInstance extends DocumentFragment {
+    #parts
+    #processor
     constructor(template, params, processor = propertyIdentityBooleanCallback) {
         super();
         // This is to fix an inconsistency in Safari which prevents us from
@@ -10,11 +12,11 @@ export default class TemplateInstance extends DocumentFragment {
         // https://bugs.webkit.org/show_bug.cgi?id=195556
         if (Object.getPrototypeOf(this !== TemplateInstance.prototype)) Object.setPrototypeOf(this, TemplateInstance.prototype);
         this.appendChild(template.content.cloneNode(true));
-        this._parts = Array.from(collectParts(this));
-        (this._processor = processor).createCallback?.(this, this._parts, params);
+        this.#parts = Array.from(collectParts(this));
+        (this.#processor = processor).createCallback?.(this, this.#parts, params);
     }
     update(params) {
-        this._processor.processCallback(this, this._parts, params);
+        this.#processor.processCallback(this, this.#parts, params);
     }
 }
 function* collectParts(el) {
@@ -78,65 +80,63 @@ function* parse(text) {
 
 
 export class NodeTemplatePart {
+    #parts
     constructor(node, expression) {
         this.expression = expression;
-        this._parts = [node];
+        this.#parts = [node];
         node.textContent = '';
     }
     get value() {
-        return this._parts.map(node => node.textContent).join('');
+        return this.#parts.map(node => node.textContent).join('');
     }
     set value(string) {
         this.replace(string);
     }
     get previousSibling() {
-        return this._parts[0].previousSibling;
+        return this.#parts[0].previousSibling;
     }
     get nextSibling() {
-        return this._parts[this._parts.length - 1].nextSibling;
+        return this.#parts[this.#parts.length - 1].nextSibling;
     }
     replace(...nodes) {
-        const parts = nodes.map(node => {
-            if (typeof node === 'string') return new Text(node);
-            return node;
-        });
+        // FIXME: possibly simple diffing like spect could come handy here
+        const parts = nodes.map(node => typeof node === 'string' ? new Text(node) : node);
         if (!parts.length) parts.push(new Text(''));
-        this._parts[0].before(...parts);
-        for (const part of this._parts) part.remove();
-        this._parts = parts
+        this.#parts[0].before(...parts);
+        for (const part of this.#parts) part.remove();
+        this.#parts = parts
     }
 }
 
-var _setter = new WeakMap(), _value = new WeakMap();
 export class AttributeTemplatePart {
+    #setter
+    #value
     constructor(setter, expression) {
         this.expression = expression;
-        _setter.set(this, undefined);
-        _value.set(this, '');
-        this._setter = setter;
-        this._setter.updateParent('');
+        this.#setter = setter;
+        this.#setter.updateParent('');
     }
     get attributeName() {
-        return this._setter.attr.name;
+        return this.#setter.attr.name;
     }
     get attributeNamespace() {
-        return this._setter.attr.namespaceURI;
+        return this.#setter.attr.namespaceURI;
     }
     get value() {
-        return this._value;
+        return this.#value;
     }
     set value(value) {
-        this._value = value || '';
-        this._setter.updateParent(value);
+        this.#value = value || '';
+        this.#setter.updateParent(value);
     }
     get element() {
-        return this._setter.element;
+        return this.#setter.element;
     }
     get booleanValue() {
-        return this._setter.booleanValue;
+        return this.#setter.booleanValue;
     }
     set booleanValue(value) {
-        this._setter.booleanValue = value;
+        this.#setter.booleanValue = value;
     }
 }
 export class AttributeValueSetter {
