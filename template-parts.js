@@ -2,12 +2,9 @@
 
 const ELEMENT = 1, TEXT = 3
 
-var _processor = new WeakMap(), _parts = new WeakMap();
 export default class TemplateInstance extends DocumentFragment {
     constructor(template, params, processor = propertyIdentityBooleanCallback) {
         super();
-        _processor.set(this, undefined);
-        _parts.set(this, undefined);
         // This is to fix an inconsistency in Safari which prevents us from
         // correctly sub-classing DocumentFragment.
         // https://bugs.webkit.org/show_bug.cgi?id=195556
@@ -80,11 +77,9 @@ function* parse(text) {
 }
 
 
-var _parts = new WeakMap();
 export class NodeTemplatePart {
     constructor(node, expression) {
         this.expression = expression;
-        _parts.set(this, undefined);
         this._parts = [node];
         node.textContent = '';
     }
@@ -216,6 +211,7 @@ export function processBooleanAttribute(part, value) {
 }
 export function processCallback(part, value) {
     if (typeof value !== 'function') return false
+    console.log(part, value)
     part.element[part.attributeName] = value
     return true
 }
