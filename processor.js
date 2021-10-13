@@ -54,13 +54,15 @@ const operators = {
   '!':(a,b)=>!b,
   '++':(a=b,b=a)=>++b,
   '--':(a=b,b=a)=>--b,
+  ',':(a,b)=>b,
   // '.':(a,b)=>a[b],
   '(':(a,b)=>a(b),
   '[':(a,b)=>a[b]
 },
 group = {'(':')','[':']', '{':'}'}
 
-// tokenize expression
+// TODO: infuse eval here
+// TODO: handle numbers, likely without dlv
 export function parse (str) {
   let i = -1,
       cur = [null],  // eg. [parent, '"a"', '+', ['b' + 'c']]
@@ -73,7 +75,7 @@ export function parse (str) {
     }
     else if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\n') {}
     else if (cur.type && ch === cur.type[1]) { // )]}
-      if (token) {cur.push(token), token = ''}
+      if (token) cur.push(token), token = ''
       cur = cur[0]
     }
     else if (group[ch]) { // ([{
@@ -81,9 +83,8 @@ export function parse (str) {
       cur.push(cur = [cur]), cur.type = ch+group[ch]
     }
     else if (op = operators[ch+str[i+1]] || operators[ch]) {
-      if (token) {cur.push(token), token = ''}
-      cur.push(op);
-      token = '';
+      if (token) cur.push(token), token=''
+      cur.push(op)
       i+=op.name.length-1
     }
     else {
