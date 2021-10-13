@@ -1,5 +1,5 @@
 <template id="foo">
-  <div class="foo {{y}}" onclick="{{click}}">{{x}} world</div>
+  <div class="foo {{y.z}}" onclick="{{click}}">{{x}} world</div>
 </template>
 
 <script type="module">
@@ -9,7 +9,7 @@
     document.getElementById('foo'),
     {
       x: 'Hello',
-      y: 'bar',
+      y: {z:'bar'},
       click(e){
         console.log(e)
       }
@@ -17,4 +17,5 @@
   )
 
   document.body.appendChild(instance)
+
 </script>
