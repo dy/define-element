@@ -18,7 +18,7 @@ export function parse (seq, ctx={}) {
     .replace(/"[^"\\\n\r]*"/g, ref)
     .replace(/\s*/g,'')
     .replace(/\b(?:true|false|null)\b/g, m => ref(m=='null'?null:m=='true', v))
-    .replace(/\b\d+(?:\.\d*)?(?:[eE][+\-]?\d+\b)?/g, m => ref(parseFloat(m)))
+    .replace(/(?<!#)\d+(?:\.\d*)?(?:[eE][+\-]?\d+\b)?/g, m => ref(parseFloat(m)))
 
   // fold parens
   while(vals.length!=c) c=vals.length, seq=seq
@@ -26,26 +26,24 @@ export function parse (seq, ctx={}) {
     .replace(/\[[^\]\)]*\]/g, ref)
 
   // split operators
-  const deop = s => Array.isArray(s) ? s.map(deop)
+  const deop = s => Array.isArray(s) ? [s.shift(), ...s.map(deop)]
     : typeof s === 'string' && s.includes(op) ? [op, ...s.split(op).map(deop)]
     : s
 
-  // vals = vals.map(s => s[0]=='('||s[0]=='['? s.slice(1,-1) : s)
+  vals = vals.map(s => s[0]=='('||s[0]=='['? [s[0], s.slice(1,-1)] : s)
   for (op of operators)
-    vals=vals.map(s=> s[0]=='('||s[0]=='[' ? deop(s) : s), seq=deop(seq)
+    vals=vals.map(s=> s[0]!='"' ? deop(s) : s), seq=deop(seq)
 
   // unfold parens
-  const unfold = (s,c) => {
-    if (Array.isArray(s)) return s.map(unfold)
-    if (typeof s === 'string' && ~(c = s.indexOf('#'))) {
-      let val = vals[s.slice(c+1)]
-      console.log(s, c, val, s.slice(0,c))
-      val = unfold(val)
-      if (c) return [s.slice(0,c),val]
-      return val
-    }
-    return s
-  }
+  const unfold = (s,c,v) =>
+    Array.isArray(s) ? [s.shift(), ...s.map(unfold)]
+    : typeof s === 'string' && ~(c = s.indexOf('#')) ? (
+      v = vals[s.slice(c+1)],
+      c = s.slice(0,c),
+      c ? (v[0]=='['?['.',c,unfold(v[1])] : [c,unfold(v[1])])
+      : v[0]=='(' ? unfold(v[1]) : unfold(v)
+    )
+    : s
 
   seq = unfold(seq)
 
