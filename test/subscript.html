@@ -1,14 +1,28 @@
 <script type="module">
+  import test, {is} from './test.js'
   import {parse} from '../subscript.js'
 
-  // console.log(parse('0 + 1 + 2'))
-  // console.log(parse('0 + 1 - 2'))
-  // console.log(parse('0 * 1 - 2'))
-  // console.log(parse('1 + a.b + 3.5'))
-  // console.log(parse('1 + (a.b + 3.5)'))
-  // console.log(parse('1 + x(a.b + 3.5)'))
-  // console.log(parse('1 + x(a[b] + 3.5)'))
-  // parse('1 -2')
-  console.log(parse('+1 * (a.b - 3.5) - "asdf" || x.y.z(123 + c[456]) + n'))
+  test('parse: basic', t => {
+    is(parse('0 + 1 + 2'), ['+', 0, 1, 2])
+    is(parse('0 + 1 - 2'), ['+', 0, ['-',1, 2]])
+    is(parse('0 - 1 + 2'), ['+', ['-',0, 1], 2])
+    is(parse('1 * 2 - 3'), ['-', ['*',1,2], 3])
+    is(parse('1 + a.b + 3.5'), ['+', 1, ['.', 'a', 'b'], 3.5])
+    is(parse('1 + (a.b + 3.5)'), ['+', 1, ['+', ['.', 'a', 'b'], 3.5]])
+    is(parse('1 + x(a.b + 3.5)'), ['+', 1, ['x', ['+', ['.', 'a','b'], 3.5]]])
+    is(parse('1 + x(a[b] + 3.5)'), ['+', 1, ['x', ['+', ['.', 'a','b'], 3.5]]])
+  })
+  test.only('parse: signs', t => {
+    is(parse('+1 + +2'),['+',1,2])
+    // is(parse('+1 -+2'),['-',1,-2])
+    // is(parse('+1 +-2'),['+',1,2])
+    // is(parse('1 -2'),['-',1,2])
+    // is(parse('+1 -2'),['-',['+',1],2])
+    // is(parse('-1 +2'),['+',['-',1],2])
+    // is(parse('1 * -1'),['*',1,['-',1]])
+  })
+  test('parse: unaries', t => {
+  })
+  // console.log(parse('+1 * (a.b - 3.5) - "asdf" || x.y.z(123 + c[456]) + n'))
   // console.log(parse('[1,2,3]'))
 </script>

@@ -2,43 +2,39 @@
 // or overset of JSON with operators
 // converts expression to lispy syntax
 // just call it with passing env
-
-// group = {'(':')','[':']', '{':'}'}
-export const operators = '|| && | ^ & != == in >= > <= < >> << - + % / * ** .'.split(' ')
-
-// TODO: infuse eval here
-// TODO: handle numbers, likely without dlv
-// TODO: convert to lispy notation [op, a, b, c...]
 // benefit of lispy result: clear precedence; overload of ops: extend to other langs; manual eval; convention;
-export function parse (seq, ctx={}) {
-  let op, vals=[], c, ref= v=>`#${vals.push(v)-1}`
+
+export const op1 = '++ -- + - ~ !'
+export const op2 = ', || && | ^ & != == in >= > <= < >> << + - % / * ** .'.split(' ')
+
+export function parse (seq) {
+  let op, c, ref= v=>`#${refs.push(v)-1}`, refs=[]
 
   // hide literals
   seq = seq
-    .replace(/"[^"\\\n\r]*"/g, ref)
-    .replace(/\s*/g,'')
+    .replace(/"[^"\\\n\r]*"|\b\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?\b/g, m => ref(m[0]==='"'?m:parseFloat(m)))
     .replace(/\b(?:true|false|null)\b/g, m => ref(m=='null'?null:m=='true', v))
-    .replace(/(?<!#)\d+(?:\.\d*)?(?:[eE][+\-]?\d+\b)?/g, m => ref(parseFloat(m)))
+    .replace(/\s+/g,'')
+
+  // fold unaries
+  // for (o1 of op1) for (o2 of op2) seq=seq.replace(o1+o2,ref)
 
   // fold parens
-  while(vals.length!=c) c=vals.length, seq=seq
-    .replace(/\([^\)\]]*\)/g, ref)
-    .replace(/\[[^\]\)]*\]/g, ref)
+  while(refs.length!=c) c=refs.length, seq=seq
+    .replace(/\(([^\)\]]*)\)/g, (_,c)=>ref(['(',c]))
+    .replace(/\[([^\]\)]*)\]/g, (_,c)=>ref(['[',c]))
 
-  // split operators
+  // split op2
   const deop = s => Array.isArray(s) ? [s.shift(), ...s.map(deop)]
-    : typeof s === 'string' && s.includes(op) ? [op, ...s.split(op).map(deop)]
+    : s.includes(op) ? console.log(op,s) || [op, ...s.split(op).map(deop)]
     : s
-
-  vals = vals.map(s => s[0]=='('||s[0]=='['? [s[0], s.slice(1,-1)] : s)
-  for (op of operators)
-    vals=vals.map(s=> s[0]!='"' ? deop(s) : s), seq=deop(seq)
+  for (op of op2) refs=refs.map(s=> Array.isArray(s) ? deop(s) : s), seq=deop(seq)
 
   // unfold parens
   const unfold = (s,c,v) =>
     Array.isArray(s) ? [s.shift(), ...s.map(unfold)]
     : typeof s === 'string' && ~(c = s.indexOf('#')) ? (
-      v = vals[s.slice(c+1)],
+      v = refs[s.slice(c+1)],
       c = s.slice(0,c),
       c ? (v[0]=='['?['.',c,unfold(v[1])] : [c,unfold(v[1])])
       : v[0]=='(' ? unfold(v[1]) : unfold(v)
@@ -50,3 +46,9 @@ export function parse (seq, ctx={}) {
   return seq
 }
 
+export function evaluate (seq, ctx) {
+
+}
+
+export default function (str, ctx) {
+}
