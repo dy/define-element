@@ -11,46 +11,44 @@ export const operators = '|| && | ^ & != == in >= > <= < >> << - + % / * ** .'.s
 // TODO: convert to lispy notation [op, a, b, c...]
 // benefit of lispy result: clear precedence; overload of ops: extend to other langs; manual eval; convention;
 export function parse (seq, ctx={}) {
-  let c = 0, token = '', op, _='_';
+  let op, vals=[], c, ref= v=>`#${vals.push(v)-1}`
 
-  // FIXME: nothing bad in inlining these into a cycle
+  // hide literals
   seq = seq
-    .replace(/"[^"\\\n\r]*"/g, m => (ctx[_+c]=m,_+c++))
+    .replace(/"[^"\\\n\r]*"/g, ref)
     .replace(/\s*/g,'')
-    .replace(/\b(?:true|false|null)\b/g, m => (ctx[_+c]=m=='null'?null:m=='true',_+c++))
-    .replace(/\b\d+(?:\.\d*)?(?:[eE][+\-]?\d+\b)?/g, m => (ctx[_+c]=parseFloat(m),_+c++))
+    .replace(/\b(?:true|false|null)\b/g, m => ref(m=='null'?null:m=='true', v))
+    .replace(/\b\d+(?:\.\d*)?(?:[eE][+\-]?\d+\b)?/g, m => ref(parseFloat(m)))
 
-  for (let op of operators) {
-    seq = proc(seq)
-    function proc(seq) {
-      if (seq.map) return seq.map(proc)
-      if (seq.includes(op)) return [op, ...seq.split(op)]
-      return seq
+  // fold parens
+  while(vals.length!=c) c=vals.length, seq=seq
+    .replace(/\([^\)\]]*\)/g, ref)
+    .replace(/\[[^\]\)]*\]/g, ref)
+
+  // split operators
+  const deop = s => Array.isArray(s) ? s.map(deop)
+    : typeof s === 'string' && s.includes(op) ? [op, ...s.split(op).map(deop)]
+    : s
+
+  // vals = vals.map(s => s[0]=='('||s[0]=='['? s.slice(1,-1) : s)
+  for (op of operators)
+    vals=vals.map(s=> s[0]=='('||s[0]=='[' ? deop(s) : s), seq=deop(seq)
+
+  // unfold parens
+  const unfold = (s,c) => {
+    if (Array.isArray(s)) return s.map(unfold)
+    if (typeof s === 'string' && ~(c = s.indexOf('#'))) {
+      let val = vals[s.slice(c+1)]
+      console.log(s, c, val, s.slice(0,c))
+      val = unfold(val)
+      if (c) return [s.slice(0,c),val]
+      return val
     }
+    return s
   }
-  console.log(seq, ctx)
 
-  // for (let i=0, ch; i < str.length; i++) {
-  //   ch = str[i]
-  //   if (cur.type && ch === cur.type[1]) { // )]}
-  //     if (token) cur.push(token), token = ''
-  //     cur = cur[0]
-  //   }
-  //   else if (group[ch]) { // ([{
-  //     if (token) cur.push(token, ch), token = '';
-  //     cur.push(cur = [cur]), cur.type = ch+group[ch]
-  //   }
-  //   else if (operators[op = ch+str[i+1]] || operators[op = ch]) {
-  //     if (op !== cur[0]) cur.push(cur = [op])  // a + b - c → ['+', a, ['-', b, c]]
-  //     if (token) cur.push(token), token=''
-  //     i+=op.length-1
-  //   }
-  //   else {
-  //     token += ch;
-  //   }
-  // }
-
-  // if (token) cur.push(token)
+  seq = unfold(seq)
 
   return seq
 }
+
