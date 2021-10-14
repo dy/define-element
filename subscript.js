@@ -4,44 +4,41 @@
 // just call it with passing env
 // benefit of lispy result: clear precedence; overload of ops: extend to other langs; manual eval; convention;
 
-export const op1 = '++ -- + - ~ !'
+export const op1 = '++ -- + - ~ !'.split(' ')
 export const op2 = ', || && | ^ & != == in >= > <= < >> << + - % / * ** .'.split(' ')
+// const ure = new RegExp(`(^|${op2.join('|')})(${op1.join('|')})`)
 
 export function parse (seq) {
-  let op, c, ref= v=>`#${refs.push(v)-1}`, refs=[]
+  let op, c, v=[], g=[,]
 
-  // hide literals
-  seq = seq
-    .replace(/"[^"\\\n\r]*"|\b\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?\b/g, m => ref(m[0]==='"'?m:parseFloat(m)))
-    .replace(/\b(?:true|false|null)\b/g, m => ref(m=='null'?null:m=='true', v))
+  // ref literals
+  seq=seq
+    .replace(/"[^"\\\n\r]*"|\b\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?\b/g, m => `#v${v.push(m[0]==='"'?m:parseFloat(m))-1}`)
+    .replace(/\b(?:true|false|null)\b/g, m => `#v${v.push(m=='null'?null:m=='true')-1}`)
     .replace(/\s+/g,'')
 
-  // fold unaries
-  // for (o1 of op1) for (o2 of op2) seq=seq.replace(o1+o2,ref)
+  // ref braces
+  while(g.length!=c) c=g.length, seq=seq
+    .replace(/\(([^\)\]]*)\)/g, (_,c)=>`#g${g.push(c)-1}`)
+    .replace(/\[([^\]\)]*)\]/g, (_,c)=>`#p${g.push(c)-1}`)
+  g[0] = seq
 
-  // fold parens
-  while(refs.length!=c) c=refs.length, seq=seq
-    .replace(/\(([^\)\]]*)\)/g, (_,c)=>ref(['(',c]))
-    .replace(/\[([^\]\)]*)\]/g, (_,c)=>ref(['[',c]))
-
-  // split op2
-  const deop = s => Array.isArray(s) ? [s.shift(), ...s.map(deop)]
-    : s.includes(op) ? console.log(op,s) || [op, ...s.split(op).map(deop)]
+  const oper = s =>
+    Array.isArray(s) ? [s.shift(), ...s.map(oper)]
+    : s.includes(op) ? [op, ...s.split(op).map(oper)]
     : s
-  for (op of op2) refs=refs.map(s=> Array.isArray(s) ? deop(s) : s), seq=deop(seq)
+  // for (op of op1) g=g.map()
+  for (op of op2) g=g.map(oper)
 
-  // unfold parens
-  const unfold = (s,c,v) =>
-    Array.isArray(s) ? [s.shift(), ...s.map(unfold)]
-    : typeof s === 'string' && ~(c = s.indexOf('#')) ? (
-      v = refs[s.slice(c+1)],
-      c = s.slice(0,c),
-      c ? (v[0]=='['?['.',c,unfold(v[1])] : [c,unfold(v[1])])
-      : v[0]=='(' ? unfold(v[1]) : unfold(v)
+  const deref = (s,c,p,i) => Array.isArray(s) ? [s.shift(), ...s.map(deref)]
+    : ~(c = s.indexOf('#')) ? (
+        i = s.slice(c+2), p=g[i],
+        s[c+1] == 'g' ? (c ? [s.slice(0,c),deref(p)] : deref(p))
+        : s[c+1] == 'p' ? ['.',s.slice(0,c),deref(p)]
+        : v[i]
     )
     : s
-
-  seq = unfold(seq)
+  seq = deref(g[0])
 
   return seq
 }
