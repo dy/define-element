@@ -43,7 +43,7 @@ export function parse (seq) {
     .replace(/"[^"\\\n\r]*"|\b\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?\b/g, m => `#v${v.push(m[0]==='"'?m:parseFloat(m))-1}`)
     .replace(/\b(?:true|false|null)\b/g, m => `#v${v.push(m=='null'?null:m=='true')-1}`)
     .replace(/\s+/g,'')
-    .replace(ore, (m,o0,o1,o2) => `${o0}@${u.push(o2?[o1,o2]:[o1])-1}`) // up to 2 unary ops
+    .replace(ore, (m,o0,o1,o2) => `${o0}${u.push(o2?[o2,o1]:[o1])-1}@`) // up to 2 unary ops
 
   // groups
   while(g.length!=c) c=g.length, g[0]=g[0]
@@ -56,18 +56,18 @@ export function parse (seq) {
   for (op of ops) g=g.map(oper)
 
   // unwrap
-  const deref = (s,c,p,i,m,n) => Array.isArray(s) ? [s.shift(), ...s.map(deref)]
+  const deref = (s,c,r,i,m,n,un,uop) => Array.isArray(s) ? [s.shift(), ...s.map(deref)]
     : ~(c = s.indexOf('#')) ? (
-      i = s.slice(c+2), m=s[c+1], p= m=='v'?v[i]:deref(g[i]), n=s.slice(0,c),
-      // TODO: unwrap unary
-      m == 'g' ? (c ? [n,p] : p) // fn or group
-      : m == 'p' ? ['.',n,p] // property
-      : p
+      i = s.slice(c+2), m=s[c+1], r= m=='v'?v[i]:deref(g[i]),
+      n=s.slice(un=s.indexOf('@')+1, c),
+      r = m == 'g' ? (c ? [n,r] : r) // fn or group
+      : m == 'p' ? ['.',n,r] // property
+      : r, // id
+      r = un ? u[s.slice(0,un-1)].reduce((r,op)=>[op, r],r) : r // unary op
     )
     : s
-  seq = deref(g[0])
 
-  return seq
+  return deref(g[0])
 }
 
 // lispy tree → output
