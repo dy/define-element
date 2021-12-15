@@ -1,6 +1,6 @@
 # define-element
 
-`<define-element>` enables declarative custom elements for HTML, like `<defs>` in SVG.
+`<define-element>` - declarative custom elements for HTML, like `<defs>` in SVG.
 
 
 ```html
@@ -124,24 +124,24 @@ Part | Expression | Accessible as | Note
 ---|---|---|---
 Value | `{{ foo }}` | `params.foo` |
 Property | `{{ foo.bar }}` | `params.foo.bar` | Property access is path-safe and allows null-ish paths
-Function call | `{{ foo(bar) }}` | `params.foo`, `params.bar` | Only function invocation is supported, not properties
-Method call | `{{ foo.bar() }}` | `params.foo.bar` | Cannot be called via `.call` or `.apply`
-Default fallback | `{{ foo ?? bar }}` | `params.foo`, `params.bar` |
+Function call | `{{ foo(bar) }}` | `params.foo`, `params.bar` |
+Method call | `{{ foo.bar() }}` | `params.foo.bar` |
 Inversion | `{{ !foo }}` | `params.foo` |
+Boolean operators | `{{ foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Primitive literals | `{{ 'foo' }}`, `{{ true }}`, `{{ 0.1 }}` | |
-Boolean operators | `{{ foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
-Comparison | `{{ foo === 1 }}` | `params.foo` |
-Loop | `{{ a, b, c in d }}` | `params.d` | Used for `:for` directive only
-Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` | Only CSS calc operators are supported, the result is expected to be only numeric
-<!-- Pipe | `{{ bar \|> foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}` -->
-<!-- Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes -->
+Comparison | `{{ foo == 1 }}` | `params.foo` |
+Loop | `{{ item, idx in list }}` | `params.d` | Used for `:for` directive only
+Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` |
+Pipe | `{{ bar \| foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}`
+Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
+<!-- Default fallback | `{{ foo || bar }}` | `params.foo`, `params.bar` | -->
 
 Parsed template parts are available as `element.params` object. Changing any of the `params.*` automatically rerenders the template.
 
 Parts support reactive types as well: _Promise_, _Observable_, _AsyncIterable_, in that case update happens by changing the reactive state:
 
-```js
+```html
 <template>{{ count }}</template>
 <script scoped>
   this.params.count = asyncIterator
@@ -150,7 +150,7 @@ Parts support reactive types as well: _Promise_, _Observable_, _AsyncIterable_, 
 
 This way, for example, rxjs can be streamed directly to the template.
 
-Template parts are implemented via [polyfill](https://github.com/github/template-parts), when shipped natively the polyfill is expected to be removed.
+Template parts are implemented via [polyfill](https://github.com/github/template-parts), when shipped natively the polyfill is expected to be removed. Template processor is implemented via [subscript](https://github.com/spectjs/subscript).
 
 
 ### Script
@@ -214,7 +214,7 @@ Styles can be defined either globally or with `scoped` attribute, limiting CSS t
     </div>
   </template>
   <style scoped>
-    :host { display: inline-block !important; }
+    :host { display: inline-block; }
     #progressbar { position: relative; display: block; width: 100%; height: 100%; }
     #bar { background-color: #36f; height: 100%; }
     #label { position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; text-align: center; }
@@ -253,8 +253,8 @@ Content can be redirected either from instances or inheriting elements via slots
 </define-element>
 
 <my-element>
-  <template slot="title">Hare Krishna!</template>
-  <template slot="content">Srila Prabhupada Ki Jay!</template>
+  <span slot="title">Hare Krishna!</span>
+  <span slot="content">Srila Prabhupada Ki Jay!</span>
 </my-element>
 ```
 
@@ -264,7 +264,7 @@ Iteration is organized via `:for` directive:
 
 ```html
 <define-element>
-  <ul is=my-list>
+  <ul is="my-list">
     <template>
       <li :for="{{ item, index in items }}" id="item-{{ index }}">{{ item.text }}</li>
     </template>
@@ -274,7 +274,7 @@ Iteration is organized via `:for` directive:
   </ul>
 </define-element>
 
-<ul is=my-list></ul>
+<ul is="my-list"></ul>
 ```
 
 Note that `index` starts with `1`, not `0`.
@@ -336,9 +336,9 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 ```html
 <define-element>
   <welcome-user>
-    <template>Hello, {{ name ?? 'guest' }}</template>
+    <template>Hello, {{ name || 'guest' }}</template>
     <script scoped>
-      this.params.name = await fetch('/user')).json()
+      this.params.name = await fetch('/user').json()
     </script>
   </welcome-user>
 </define-element>
@@ -350,15 +350,15 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 
 ```html
 <define-element>
-  <x-timer>
+  <x-timer start:number="0">
     <template>
       <time part="timer">{{ count }}</time>
     </template>
     <script scoped>
-      this.params.count = this.props.start || 0
+      this.params.count = this.props.start
       let id
-      this.onmount = () => id = setInterval(() => this.params.count++, 1000)
-      this.onunmount = () => clearInterval(id)
+      this.onconnected = () => id = setInterval(() => this.params.count++, 1000)
+      this.ondisconnected = () => clearInterval(id)
     </script>
   </x-timer>
 </define-element>
@@ -370,7 +370,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 
 ```html
 <define-element>
-  <x-clock>
+  <x-clock start:date>
     <template>
       <time datetime="{{ time }}">{{ time.toLocaleTimeString() }}</time>
     </template>
@@ -420,7 +420,8 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
         <li class="todo-item" :for="{{ item in todos }}">{{ item.text }}</li>
       </ul>
     </template>
-    <script sandbox>
+    <script scoped>
+      // initialize from child nodes
       this.params.todos = this.children.map(child => {text: child.textContent})
       this.parts.text.onsubmit = e => {
         e.preventDefault()
@@ -464,15 +465,13 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 <form is="validator-form"></form>
 ```
 
-## Similar
+
+## Inspiration
 
 * [vue3 single piece](https://github.com/vuejs/rfcs/blob/sfc-improvements/active-rfcs/0000-sfc-script-setup.md)
 * [uce-template](https://github.com/WebReflection/uce-template#readme)
 * [declarative custom elements](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md)
 * [snuggsi](https://github.com/devpunks/snuggsi)
-
-## Refs
-
 * [Template Instantiation proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Template-Instantiation.md)
 * [github/template-parts](https://github.com/github/template-parts)
 * [template-instantiation-polyfill](https://www.npmjs.com/package/template-instantiation-polyfill)
