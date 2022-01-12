@@ -97,11 +97,3 @@ class ElementTemplate extends HTMLTemplateElement {
 }
 
 customElements.define('custom-element', ElementTemplate, { extends:'template' })
-r53 rxff ff d gggf5bbb b              b   ,,xmb
-k.'kpk'k
-;,'!xjjjp
-kpkpkpjojpkplkp
-
-
-B F G FG B IOLIKK
-Node'

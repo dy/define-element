@@ -28,13 +28,11 @@
 * declarative shadow dom
 * scoped script
 * scoped style
-* sandboxed script (coming)
 * `params` for changing template parts
-* `parts` for access to template elements
 * `props` for accessing / changing props
-* elaborate template processor with loops & conditionals
+* template processor with expressions, loops and conditions
 * `connected`, `disconnected` events
-* easy slots
+* slots
 * built-in reactivity
 
 
@@ -46,18 +44,18 @@ Element is defined by-example (similar to `<defs>` in SVG) and may contain `<tem
 
 ```html
 <define-element>
-  <element-name prop:type="default">
+  <my-element prop:type="default">
     <template>
       {{ content }}
     </template>
     <style></style>
     <script></script>
-  </element-name>
+  </my-element>
 
   <another-element>...</another-element>
 </define-element>
 
-<element-name></element-name>
+<my-element></my-element>
 ```
 
 Instances of `<element-name>` automatically receive defined attributes and content.
@@ -65,13 +63,13 @@ Instances of `<element-name>` automatically receive defined attributes and conte
 If `<template>` section isn't defined, the instance content preserved as is.
 
 
-### Properties / Prop Types
+### Props
 
-Properties and/or prop types are defined declaratively as custom element attributes:
+Props with optional types are defined declaratively as custom element attributes:
 
 ```html
 <define-element>
-  <x-x count:number="0" flag:boolean text:string time:date value>
+  <x-x count:number="0" flag:boolean text:string time:date value="default">
     <template>{{ count }}</template>
     <script scoped>
       console.log(this.props.count) // 0
@@ -82,7 +80,7 @@ Properties and/or prop types are defined declaratively as custom element attribu
 </define-element>
 ```
 
-Available types are any primitives (attribute case doesn't matter):
+Available types are any primitives (attribute case doesn't play role):
 
 * `:string` for _String_
 * `:boolean` for _Boolean_
@@ -92,18 +90,15 @@ Available types are any primitives (attribute case doesn't matter):
 * `:object` for _Object_ via `JSON.parse`
 * no type for automatic detection
 
-<!-- * `:int` for _Number_ via `parseInt` -->
-<!-- * `:time` for _Date_ with days cutoff -->
-<!-- * `:list` for _Array_ from CSV -->
-
-Instance props values are available under `element.props`, changing any of `element.props.*` is reflected in attributes.
+Instance props values are available under `element.props`.
+Changing any of `element.props.*` is reflected in attributes.
 
 See [element-props](https://github.com/spectjs/element-props).
 
 
-### Template Parts
+### Template
 
-`<template>` supports [template parts](https://github.com/w3c/webcomponents/blob/159b1600bab02fe9cd794825440a98537d53b389/proposals/Template-Instantiation.md#2-use-cases) with elaborate processor:
+`<template>` supports [template parts](https://github.com/w3c/webcomponents/blob/159b1600bab02fe9cd794825440a98537d53b389/proposals/Template-Instantiation.md#2-use-cases) with expressions:
 
 ```html
 <define-element>
@@ -118,28 +113,26 @@ See [element-props](https://github.com/spectjs/element-props).
 </define-element>
 ```
 
-The processor supports the following expressions:
+Supported expressions:
 
 Part | Expression | Accessible as | Note
 ---|---|---|---
 Value | `{{ foo }}` | `params.foo` |
-Property | `{{ foo.bar }}` | `params.foo.bar` | Property access is path-safe and allows null-ish paths
+Property | `{{ foo.bar?.baz }}`, `{{ foo["bar"] }}` | `params.foo.bar` |
 Function call | `{{ foo(bar) }}` | `params.foo`, `params.bar` |
 Method call | `{{ foo.bar() }}` | `params.foo.bar` |
-Inversion | `{{ !foo }}` | `params.foo` |
-Boolean operators | `{{ foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
+Boolean operators | `{{ !foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
-Primitive literals | `{{ 'foo' }}`, `{{ true }}`, `{{ 0.1 }}` | |
-Comparison | `{{ foo == 1 }}` | `params.foo` |
-Loop | `{{ item, idx in list }}` | `params.d` | Used for `:for` directive only
+Primitives | `{{ "foo" }}`, `{{ true }}`, `{{ 0.1 }}` | |
+Comparison | `{{ foo == 1 }}`, `{{ bar > foo }}` | `params.foo`, `params.bar` |
 Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` |
 Pipe | `{{ bar \| foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}`
+Loop | `{{ item, idx in list }}` | `params.list` | Used for `:for` directive
 Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
-<!-- Default fallback | `{{ foo || bar }}` | `params.foo`, `params.bar` | -->
 
-Parsed template parts are available as `element.params` object. Changing any of the `params.*` automatically rerenders the template.
+Template part values are available as `element.params` object. Changing any of the `params.*` automatically rerenders the template.
 
-Parts support reactive types as well: _Promise_, _Observable_, _AsyncIterable_, in that case update happens by changing the reactive state:
+Parts support reactive types as well: _Promise_/_Thenable_, _Observable_/_Subject_, _AsyncIterable_ etc. In that case update happens by changing the reactive state:
 
 ```html
 <template>{{ count }}</template>
@@ -150,7 +143,56 @@ Parts support reactive types as well: _Promise_, _Observable_, _AsyncIterable_, 
 
 This way, for example, rxjs can be streamed directly to the template.
 
-Template parts are implemented via [polyfill](https://github.com/github/template-parts), when shipped natively the polyfill is expected to be removed. Template processor is implemented via [subscript](https://github.com/spectjs/subscript).
+Template parts are implemented via [templize](https://github.com/spectjs/templize) - ponyfill for _Template-Parts_ proposal.
+Expression processor is implemented via [subscript](https://github.com/spectjs/subscript).
+
+
+### Loops
+
+Iteration is organized via `:for` directive:
+
+```html
+<define-element>
+  <ul is="my-list">
+    <template>
+      <li :for="{{ item, index in items }}" id="item-{{ index }}">{{ item.text }}</li>
+    </template>
+    <script scoped>
+      this.params.items = [1,2,3]
+    </script>
+  </ul>
+</define-element>
+
+<ul is="my-list"></ul>
+```
+
+Note that `index` starts with `1`, not `0`.
+
+Cases:
+
+```html
+<li :for="{{ item, index in array }}">
+<li :for="{{ key, value, index in object }}">
+<li :for="{{ count in number }}">
+```
+
+### Conditions
+
+Conditions can be organized either as ternary template part or via `:if`, `:else-if`, `:else` directives.
+
+For text variants ternary operator is shorter:
+
+```html
+<span>Status: {{ status === 0 ? 'Active' : 'Inactive' }}</span>
+```
+
+To optionally display an element, use `:if`-`:else-if`-`:else`:
+
+```html
+<span :if="{{ status === 0 }}">Inactive</span>
+<span :else-if="{{ status === 1 }}">Active</span>
+<span :else>Finished</span>
+```
 
 
 ### Script
@@ -158,7 +200,8 @@ Template parts are implemented via [polyfill](https://github.com/github/template
 <!-- There are two ways to attach scripts to the defined element. -->
 <!-- _First_ is via `scoped` script attribute. That enables script to run with `this` defined as _element_ instance, instead of _window_. Also, it automatically exposes internal element references by `part`. -->
 
-Script runs in `connectedCallback` with children and properties parsed and present on the element. If `scoped` attribute is present, `this` points to the _element_ instance, instead of _window_.
+Script runs in `connectedCallback` with children and properties parsed and present on the element.
+`scoped` attribute makes `this` point to the _element_ instance, instead of _window_.
 
 ```html
 <define-element>
@@ -175,6 +218,9 @@ Script runs in `connectedCallback` with children and properties parsed and prese
   </main-header>
 </define-element>
 ```
+
+See `scoped` proposal discussions: [1](https://discourse.wicg.io/t/script-tags-scoped-to-shadow-root-script-scoped-src/4726/2), [2](https://discourse.wicg.io/t/proposal-chtml/4716/9) and [`<script scoped>` polyfill](https://gist.github.com/dy/2124c2dfcbdd071f38e866b85436c6c5) implementation.
+
 <!--
 
 _Second_ method is via custom element constructor, as proposed in [declarative custom elements](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md). It provides more granular control over constructor, callbacks and attributes.
@@ -197,8 +243,6 @@ At the same time, it would require manual control over children, props and react
 </define-element>
 ```
 -->
-
-See proposal discussions: [1](https://discourse.wicg.io/t/script-tags-scoped-to-shadow-root-script-scoped-src/4726/2), [2](https://discourse.wicg.io/t/proposal-chtml/4716/9) and [`<script scoped>` polyfill](https://gist.github.com/dy/2124c2dfcbdd071f38e866b85436c6c5) implementation.
 
 
 ### Styles
@@ -258,53 +302,6 @@ Content can be redirected either from instances or inheriting elements via slots
 </my-element>
 ```
 
-### Loops
-
-Iteration is organized via `:for` directive:
-
-```html
-<define-element>
-  <ul is="my-list">
-    <template>
-      <li :for="{{ item, index in items }}" id="item-{{ index }}">{{ item.text }}</li>
-    </template>
-    <script scoped>
-      this.params.items = [1,2,3]
-    </script>
-  </ul>
-</define-element>
-
-<ul is="my-list"></ul>
-```
-
-Note that `index` starts with `1`, not `0`.
-
-Cases:
-
-```html
-<li :for="{{ item, index in array }}">
-<li :for="{{ key, value, index in object }}">
-<li :for="{{ count in number }}">
-```
-
-### Conditions
-
-Conditionals can be organized either as ternary template part or via `:if`, `:else-if`, `:else` directives.
-
-For text variants ternary operator is shorter:
-
-```html
-<span>Status: {{ status === 0 ? 'Active' : 'Inactive' }}</span>
-```
-
-To optionally display an element, use `:if`-`:else-if`-`:else`:
-
-```html
-<span :if="{{ status === 0 }}">Inactive</span>
-<span :else-if="{{ status === 1 }}">Active</span>
-<span :else>Finished</span>
-```
-
 
 ### Lifecycle events
 
@@ -336,7 +333,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 ```html
 <define-element>
   <welcome-user>
-    <template>Hello, {{ name || 'guest' }}</template>
+    <template>Hello, {{ name || '...' }}</template>
     <script scoped>
       this.params.name = await fetch('/user').json()
     </script>
@@ -474,7 +471,6 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 * [snuggsi](https://github.com/devpunks/snuggsi)
 * [Template Instantiation proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Template-Instantiation.md)
 * [github/template-parts](https://github.com/github/template-parts)
-* [template-instantiation-polyfill](https://www.npmjs.com/package/template-instantiation-polyfill)
 
 ### License
 
