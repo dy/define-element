@@ -470,6 +470,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 * [uce-template](https://github.com/WebReflection/uce-template#readme)
 * [declarative custom elements](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md)
 * [snuggsi](https://github.com/devpunks/snuggsi)
+* [tram-lite](https://github.com/Tram-One/tram-lite)
 * [Template Instantiation proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Template-Instantiation.md)
 
 ### License
