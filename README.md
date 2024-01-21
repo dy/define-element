@@ -462,8 +462,9 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 <form is="validator-form"></form>
 ```
 
-## Inspiration
+## Inspiration / Similar
 
+* [element-modules](https://github.com/trusktr/element-modules)
 * [EPA-WG custom-element](https://github.com/EPA-WG/custom-element)
 * [vue3 single piece](https://github.com/vuejs/rfcs/blob/sfc-improvements/active-rfcs/0000-sfc-script-setup.md)
 * [uce-template](https://github.com/WebReflection/uce-template#readme)
