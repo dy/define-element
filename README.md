@@ -86,17 +86,17 @@ Props with optional types are defined declaratively as custom element attributes
 </define-element>
 ```
 
-Available types are any primitives (attribute case doesn't play role):
+Available types are any primitives (attributes are case-agnostic):
 
 * `:string` for _String_
 * `:boolean` for _Boolean_
 * `:number` for _Number_
 * `:date` for _Date_
 * `:array` for _Array_
-* `:object` for _Object_ via `JSON.parse`
+* `:object` for _Object_
 * no type for automatic detection
 
-Instance props values are available under `element.props`.
+Props values are available under `element.props`.
 Changing any of `element.props.*` is reflected in attributes.
 
 See [element-props](https://github.com/spectjs/element-props).
