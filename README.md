@@ -23,6 +23,8 @@
 <x-time></x-time>
 ```
 
+### Features
+
 * declarative custom elements
 * declarative prop types
 * declarative shadow dom
@@ -33,7 +35,7 @@
 * template processor with expressions, loops and conditions
 * `connected`, `disconnected` events
 * slots
-* built-in reactivity
+* baked-in reactivity
 
 
 ## Documentation
@@ -61,6 +63,10 @@ Element is defined by-example (similar to `<defs>` in SVG) and may contain `<tem
 Instances of `<element-name>` automatically receive defined attributes and content.
 
 If `<template>` section isn't defined, the instance content preserved as is.
+
+#### Why? 
+
+Template-instantiation proposal naturally accomodates for template fields/parts, making it work outside of `<template>` tag would encounter many issues: [parsing table](https://github.com/github/template-parts/issues/24), [SVG attributes](https://github.com/github/template-parts/issues/25), [liquid syntax](https://shopify.github.io/liquid/tags/template/#raw) conflict etc.
 
 
 ### Props
@@ -113,7 +119,7 @@ See [element-props](https://github.com/spectjs/element-props).
 </define-element>
 ```
 
-Supported expressions:
+Supported syntax - eg. [justin](https://github.com/dy/subscript?tab=readme-ov-file#justin):
 
 Part | Expression | Accessible as | Note
 ---|---|---|---
@@ -132,7 +138,7 @@ Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nod
 
 Template part values are available as `element.params` object. Changing any of the `params.*` automatically rerenders the template.
 
-Parts support reactive types as well: _Promise_/_Thenable_, _Observable_/_Subject_, _AsyncIterable_ etc. In that case update happens by changing the reactive state:
+Parts can potentially support reactive types as well: _Promise_/_Thenable_, _Observable_/_Subject_, _AsyncIterable_ etc. In that case update happens by changing the reactive state:
 
 ```html
 <template>{{ count }}</template>
@@ -141,15 +147,12 @@ Parts support reactive types as well: _Promise_/_Thenable_, _Observable_/_Subjec
 </script>
 ```
 
-This way, for example, rxjs can be streamed directly to the template.
-
-Template parts are implemented via [templize](https://github.com/spectjs/templize) - ponyfill for _Template-Parts_ proposal.
-Expression processor is implemented via [subscript](https://github.com/spectjs/subscript).
+See [template-parts](https://github.com/dy/template-parts) / [templize](https://github.com/dy/templize) - ponyfills for _Template-Parts_ proposal.
 
 
-### Loops
+### Loops (tentative)
 
-Iteration is organized via `:for` directive:
+Iteration can be organized via `:for` directive:
 
 ```html
 <define-element>
@@ -195,10 +198,11 @@ To optionally display an element, use `:if`-`:else-if`-`:else`:
 ```
 
 
-### Script
+### Script (tentative)
 
-<!-- There are two ways to attach scripts to the defined element. -->
-<!-- _First_ is via `scoped` script attribute. That enables script to run with `this` defined as _element_ instance, instead of _window_. Also, it automatically exposes internal element references by `part`. -->
+There are two ways to attach scripts to the defined element.
+
+_First_ is via `scoped` script attribute. That enables script to run with `this` defined as _element_ instance, instead of _window_. Also, it automatically exposes internal element references by `part`.
 
 Script runs in `connectedCallback` with children and properties parsed and present on the element.
 `scoped` attribute makes `this` point to the _element_ instance, instead of _window_.
@@ -221,7 +225,6 @@ Script runs in `connectedCallback` with children and properties parsed and prese
 
 See `scoped` proposal discussions: [1](https://discourse.wicg.io/t/script-tags-scoped-to-shadow-root-script-scoped-src/4726/2), [2](https://discourse.wicg.io/t/proposal-chtml/4716/9) and [`<script scoped>` polyfill](https://gist.github.com/dy/2124c2dfcbdd071f38e866b85436c6c5) implementation.
 
-<!--
 
 _Second_ method is via custom element constructor, as proposed in [declarative custom elements](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md). It provides more granular control over constructor, callbacks and attributes.
 At the same time, it would require manual control over children, props and reactivity.
@@ -242,7 +245,6 @@ At the same time, it would require manual control over children, props and react
   </my-element>
 </define-element>
 ```
--->
 
 
 ### Styles
