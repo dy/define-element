@@ -24,19 +24,18 @@ Getting existing things together in one ergonomic way.
 <x-time></x-time>
 ```
 
-### Features
+### Contents
 
-* declarative custom elements
-* declarative prop types
-* declarative shadow dom
-* scoped script
-* scoped style
-* `params` for changing template parts
-* `props` for accessing / changing props
-* template processor with expressions, loops and conditions
-* `connected`, `disconnected` events
-* slots
-* baked-in reactivity
+* [Element Definition](#element-definition)
+* [Property Types](#properties)
+* [Template](#template)
+* [Expressions](#expressions)
+* [Shadowmode](#shadowmode)
+* [Slots](#slots)
+* [Script](#script)
+* [Style](#style)
+* [Lifecycle events](#lifecycle-events)
+* [Examples](#examples)
 
 ## Element Definition
 
@@ -69,7 +68,7 @@ Template-instantiation proposal naturally accomodates for template fields/parts,
 Single `<define-element>` can define multiple custom elements.
 
 
-## Props
+## Property types
 
 Props with optional types are defined declaratively as custom element attributes:
 
@@ -150,7 +149,7 @@ Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` |
 Loop | `{{ item, idx in list }}` | `params.list` | Used for `:for` directive
 Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
 
-## Loops (tentative)
+### Loops (tentative)
 
 Iteration can be organized via `:for` directive:
 
@@ -182,7 +181,7 @@ Cases:
 _Alternatively_, `<template directive="each" expression="{{ item in items }}"` can be used from _Template Instantiation_ proposal.
 The drawback of proposal - it's verbose and not clear if `expression="item in items"` vs `expression="{{ item in items}}"`.
 
-## Conditions (tentative)
+### Conditions (tentative)
 
 Conditions can be organized either as ternary template part or via `:if`, `:else-if`, `:else` directives.
 
@@ -203,6 +202,41 @@ To optionally display an element, use `:if`-`:else-if`-`:else`:
 _Alternatively_, `<template directive="if" expression="{{ status === 0 }}"` can be used from _Template Instantiation_ proposal.
 The drawback of proposal - it's verbose and not clear if `expression="status === 0"` vs `expression="{{ status === 0 }}"`.
 
+
+## Shadowmode
+
+Can be defined via `shadowrootmode` property:
+
+```html
+<my-element>
+  <template shadowrootmode="closed"><template>
+</my-element>
+<my-element>
+  <template shadowrootmode="open"><template>
+</my-element>
+```
+
+See [declarative-shadow-dom](https://developer.chrome.com/docs/css-ui/declarative-shadow-dom).
+
+## Slots
+
+Content can be redirected either from instances or inheriting elements via slots mechanism:
+
+```html
+<define-element>
+  <my-element>
+    <template>
+      <h1><slot name="title"></slot></h1>
+      <p><slot name="content">{{ children }}</slot></p>
+    </template>
+  </my-element>
+</define-element>
+
+<my-element>
+  <span slot="title">Hare Krishna!</span>
+  <span slot="content">Srila Prabhupada Ki Jay!</span>
+</my-element>
+```
 
 ## Script
 
@@ -253,7 +287,7 @@ At the same time, it would require manual control over children, props and react
 ```
 
 
-## Styles
+## Style
 
 Styles can be defined either globally or with `scoped` attribute, limiting CSS to only component instances.
 
@@ -276,41 +310,6 @@ Styles can be defined either globally or with `scoped` attribute, limiting CSS t
 
 See [`<style scoped>`](https://github.com/samthor/scoped).
 
-
-## Shadow DOM
-
-Can be defined via `shadowrootmode` property:
-
-```html
-<my-element>
-  <template shadowrootmode="closed"><template>
-</my-element>
-<my-element>
-  <template shadowrootmode="open"><template>
-</my-element>
-```
-
-See [declarative-shadow-dom](https://developer.chrome.com/docs/css-ui/declarative-shadow-dom).
-
-## Slots
-
-Content can be redirected either from instances or inheriting elements via slots mechanism:
-
-```html
-<define-element>
-  <my-element>
-    <template>
-      <h1><slot name="title"></slot></h1>
-      <p><slot name="content">{{ children }}</slot></p>
-    </template>
-  </my-element>
-</define-element>
-
-<my-element>
-  <span slot="title">Hare Krishna!</span>
-  <span slot="content">Srila Prabhupada Ki Jay!</span>
-</my-element>
-```
 
 
 ## Lifecycle events
