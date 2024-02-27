@@ -133,7 +133,7 @@ See [template-parts](https://github.com/dy/template-parts) / [templize](https://
 
 ## Expressions
 
-Supported syntax - eg. [justin](https://github.com/dy/subscript?tab=readme-ov-file#justin):
+Syntax can be full JS or subset like [Justin](https://github.com/dy/subscript?tab=readme-ov-file#justin):
 
 Part | Expression | Accessible as | Note
 ---|---|---|---
@@ -146,7 +146,7 @@ Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Primitives | `{{ "foo" }}`, `{{ true }}`, `{{ 0.1 }}` | |
 Comparison | `{{ foo == 1 }}`, `{{ bar > foo }}` | `params.foo`, `params.bar` |
 Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` |
-Loop | `{{ item, idx in list }}` | `params.list` | Used for `:for` directive
+Loop | `{{ item, idx in list }}` | `params.list` | 
 Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
 
 ### Loops (tentative)
