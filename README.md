@@ -121,6 +121,21 @@ See [element-props](https://github.com/spectjs/element-props).
 </define-element>
 ```
 
+Template part values are available as `element.params` object. Changing any of the `params.*` automatically rerenders the template.
+
+Parts can potentially support reactive types as well: _Promise_/_Thenable_, _Observable_/_Subject_, _AsyncIterable_ etc. In that case update happens by changing the reactive state:
+
+```html
+<template>{{ count }}</template>
+<script scoped>
+  this.params.count = asyncIterator
+</script>
+```
+
+See [template-parts](https://github.com/dy/template-parts) / [templize](https://github.com/dy/templize) - ponyfills for _Template-Parts_ proposal.
+
+## Expressions
+
 Supported syntax - eg. [justin](https://github.com/dy/subscript?tab=readme-ov-file#justin):
 
 Part | Expression | Accessible as | Note
@@ -137,20 +152,6 @@ Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` |
 Pipe | `{{ bar \| foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}`
 Loop | `{{ item, idx in list }}` | `params.list` | Used for `:for` directive
 Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
-
-Template part values are available as `element.params` object. Changing any of the `params.*` automatically rerenders the template.
-
-Parts can potentially support reactive types as well: _Promise_/_Thenable_, _Observable_/_Subject_, _AsyncIterable_ etc. In that case update happens by changing the reactive state:
-
-```html
-<template>{{ count }}</template>
-<script scoped>
-  this.params.count = asyncIterator
-</script>
-```
-
-See [template-parts](https://github.com/dy/template-parts) / [templize](https://github.com/dy/templize) - ponyfills for _Template-Parts_ proposal.
-
 
 ### Loops (tentative)
 
@@ -181,7 +182,7 @@ Cases:
 <li :for="{{ count in number }}">
 ```
 
-### Conditions
+### Conditions (tentative)
 
 Conditions can be organized either as ternary template part or via `:if`, `:else-if`, `:else` directives.
 
@@ -200,7 +201,7 @@ To optionally display an element, use `:if`-`:else-if`-`:else`:
 ```
 
 
-### Script (tentative)
+### Script
 
 There are two ways to attach scripts to the defined element.
 
