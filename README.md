@@ -99,7 +99,7 @@ Available types are any primitives (attributes are case-agnostic):
 Props values are available under `element.props`.
 Changing any of `element.props.*` is reflected in attributes.
 
-See [element-props](https://github.com/spectjs/element-props).
+See [Element Properties proposal](https://github.com/developit/unified-element-properties-proposal), [element-props](https://github.com/spectjs/element-props).
 
 
 ## Template
