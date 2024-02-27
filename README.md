@@ -179,6 +179,9 @@ Cases:
 <li :for="{{ count in number }}">
 ```
 
+_Alternatively_, `<template directive="each" expression="{{ item in items }}"` can be used from _Template Instantiation_ proposal.
+The drawback of proposal - it's verbose and not clear if `expression="item in items"` vs `expression="{{ item in items}}"`.
+
 ## Conditions (tentative)
 
 Conditions can be organized either as ternary template part or via `:if`, `:else-if`, `:else` directives.
@@ -193,14 +196,17 @@ To optionally display an element, use `:if`-`:else-if`-`:else`:
 
 ```html
 <span :if="{{ status === 0 }}">Inactive</span>
-<span :else-if="{{ status === 1 }}">Active</span>
+<span :else :if="{{ status === 1 }}">Active</span>
 <span :else>Finished</span>
 ```
+
+_Alternatively_, `<template directive="if" expression="{{ status === 0 }}"` can be used from _Template Instantiation_ proposal.
+The drawback of proposal - it's verbose and not clear if `expression="status === 0"` vs `expression="{{ status === 0 }}"`.
 
 
 ## Script
 
-There are two ways to attach scripts to the defined element.
+There are two possible ways to attach scripts to the defined element.
 
 _First_ is via `scoped` script attribute. That enables script to run with `this` defined as _element_ instance, instead of _window_. Also, it automatically exposes internal element references by `part`.
 
@@ -273,7 +279,7 @@ See [`<style scoped>`](https://github.com/samthor/scoped).
 
 ## Shadow DOM
 
-Can be defined via `shadowrootmode` property (as in [declarative-shadow-dom](https://developer.chrome.com/docs/css-ui/declarative-shadow-dom))
+Can be defined via `shadowrootmode` property:
 
 ```html
 <my-element>
@@ -283,6 +289,8 @@ Can be defined via `shadowrootmode` property (as in [declarative-shadow-dom](htt
   <template shadowrootmode="open"><template>
 </my-element>
 ```
+
+See [declarative-shadow-dom](https://developer.chrome.com/docs/css-ui/declarative-shadow-dom).
 
 ## Slots
 
@@ -305,7 +313,7 @@ Content can be redirected either from instances or inheriting elements via slots
 ```
 
 
-### Lifecycle events
+## Lifecycle events
 
 There are `connected`, `disconnected` and `attributechanged` events generated to simplify instance lifecycle management. They're available as `onconnected`, `ondisconnected` and `onattributechanged` event handlers as well.
 
