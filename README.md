@@ -149,7 +149,6 @@ Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
 Primitives | `{{ "foo" }}`, `{{ true }}`, `{{ 0.1 }}` | |
 Comparison | `{{ foo == 1 }}`, `{{ bar > foo }}` | `params.foo`, `params.bar` |
 Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` |
-Pipe | `{{ bar \| foo }}` | `params.foo`, `params.bar` | Same as `{{ foo(bar) }}`
 Loop | `{{ item, idx in list }}` | `params.list` | Used for `:for` directive
 Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
 
