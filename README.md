@@ -68,6 +68,8 @@ If `<template>` section isn't defined, the instance content preserved as is.
 
 Template-instantiation proposal naturally accomodates for template fields/parts, making it work outside of `<template>` tag would encounter many issues: [parsing table](https://github.com/github/template-parts/issues/24), [SVG attributes](https://github.com/github/template-parts/issues/25), [liquid syntax](https://shopify.github.io/liquid/tags/template/#raw) conflict etc.
 
+Single `<define-element>` can define multiple custom elements.
+
 
 ### Props
 
