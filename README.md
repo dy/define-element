@@ -2,6 +2,7 @@
 
 `<define-element>` - custom element to declare custom elements. (Similar to `<defs>` in SVG).
 
+Getting existing things together in one ergonomic way.
 
 ```html
 <define-element>
@@ -463,16 +464,17 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 <form is="validator-form"></form>
 ```
 
-## Inspiration / Similar
+## Refs
 
 * [element-modules](https://github.com/trusktr/element-modules)
 * [EPA-WG custom-element](https://github.com/EPA-WG/custom-element)
 * [vue3 single piece](https://github.com/vuejs/rfcs/blob/sfc-improvements/active-rfcs/0000-sfc-script-setup.md)
 * [uce-template](https://github.com/WebReflection/uce-template#readme)
-* [declarative custom elements](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md)
 * [snuggsi](https://github.com/devpunks/snuggsi)
 * [tram-lite](https://github.com/Tram-One/tram-lite)
-* [Template Instantiation proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Template-Instantiation.md)
+* [tram-deco](https://github.com/Tram-One/tram-deco)
+* [Declarative Custom Elements Proposal](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md)
+* [Template Instantiation Proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Template-Instantiation.md)
 
 ### License
 
