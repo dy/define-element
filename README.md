@@ -135,19 +135,19 @@ See [template-parts](https://github.com/dy/template-parts) / [templize](https://
 
 Syntax can be full JS or subset like [Justin](https://github.com/dy/subscript?tab=readme-ov-file#justin):
 
-Part | Expression | Accessible as | Note
----|---|---|---
-Value | `{{ foo }}` | `params.foo` |
-Property | `{{ foo.bar?.baz }}`, `{{ foo["bar"] }}` | `params.foo.bar` |
-Function call | `{{ foo(bar) }}` | `params.foo`, `params.bar` |
-Method call | `{{ foo.bar() }}` | `params.foo.bar` |
-Boolean operators | `{{ !foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` |
-Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` |
-Primitives | `{{ "foo" }}`, `{{ true }}`, `{{ 0.1 }}` | |
-Comparison | `{{ foo == 1 }}`, `{{ bar > foo }}` | `params.foo`, `params.bar` |
-Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` |
-Loop | `{{ item, idx in list }}` | `params.list` | 
-Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
+Part | Expression | Accessible as
+---|---|---
+Value | `{{ foo }}` | `params.foo` 
+Property | `{{ foo.bar?.baz }}`, `{{ foo["bar"] }}` | `params.foo.bar` 
+Function call | `{{ foo(bar) }}` | `params.foo`, `params.bar` 
+Method call | `{{ foo.bar() }}` | `params.foo.bar` 
+Boolean operators | `{{ !foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` 
+Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` 
+Primitives | `{{ "foo" }}`, `{{ true }}`, `{{ 0.1 }}` | 
+Comparison | `{{ foo == 1 }}`, `{{ bar > foo }}` | `params.foo`, `params.bar` 
+Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` 
+Loop | `{{ item, idx in list }}` | `params.list` 
+Spread | `{{ ...foo }}` | `params.foo` 
 
 ### Loops (tentative)
 
