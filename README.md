@@ -37,10 +37,7 @@
 * slots
 * baked-in reactivity
 
-
-## Documentation
-
-### Element Definition
+## Element Definition
 
 Element is defined by-example (similar to `<defs>` in SVG) and may contain `<template>`, `<style>` and `<script>` sections.
 
@@ -71,7 +68,7 @@ Template-instantiation proposal naturally accomodates for template fields/parts,
 Single `<define-element>` can define multiple custom elements.
 
 
-### Props
+## Props
 
 Props with optional types are defined declaratively as custom element attributes:
 
@@ -104,7 +101,7 @@ Changing any of `element.props.*` is reflected in attributes.
 See [element-props](https://github.com/spectjs/element-props).
 
 
-### Template
+## Template
 
 `<template>` supports [template parts](https://github.com/w3c/webcomponents/blob/159b1600bab02fe9cd794825440a98537d53b389/proposals/Template-Instantiation.md#2-use-cases) with expressions:
 
@@ -152,7 +149,7 @@ Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` |
 Loop | `{{ item, idx in list }}` | `params.list` | Used for `:for` directive
 Spread | `{{ ...foo }}` | `params.foo` | Used to pass multiple attributes or nodes
 
-### Loops (tentative)
+## Loops (tentative)
 
 Iteration can be organized via `:for` directive:
 
@@ -181,7 +178,7 @@ Cases:
 <li :for="{{ count in number }}">
 ```
 
-### Conditions (tentative)
+## Conditions (tentative)
 
 Conditions can be organized either as ternary template part or via `:if`, `:else-if`, `:else` directives.
 
@@ -200,7 +197,7 @@ To optionally display an element, use `:if`-`:else-if`-`:else`:
 ```
 
 
-### Script
+## Script
 
 There are two ways to attach scripts to the defined element.
 
@@ -249,7 +246,7 @@ At the same time, it would require manual control over children, props and react
 ```
 
 
-### Styles
+## Styles
 
 Styles can be defined either globally or with `scoped` attribute, limiting CSS to only component instances.
 
@@ -273,20 +270,20 @@ Styles can be defined either globally or with `scoped` attribute, limiting CSS t
 See [`<style scoped>`](https://github.com/samthor/scoped).
 
 
-### Shadow DOM
+## Shadow DOM
 
-Can be defined via `shadowmode` property.
+Can be defined via `shadowrootmode` property (as in [declarative-shadow-dom](https://developer.chrome.com/docs/css-ui/declarative-shadow-dom))
 
 ```html
 <my-element>
-  <template shadowmode="closed"><template>
+  <template shadowrootmode="closed"><template>
 </my-element>
 <my-element>
-  <template shadowmode="open"><template>
+  <template shadowrootmode="open"><template>
 </my-element>
 ```
 
-### Slots
+## Slots
 
 Content can be redirected either from instances or inheriting elements via slots mechanism:
 
