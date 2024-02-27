@@ -27,7 +27,7 @@ Getting existing things together in one ergonomic way.
 ### Contents
 
 * [Element Definition](#element-definition)
-* [Property Types](#properties)
+* [Property Types](#property-types)
 * [Template](#template)
 * [Expressions](#expressions)
 * [Shadowmode](#shadowmode)
