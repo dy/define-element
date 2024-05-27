@@ -1,8 +1,7 @@
 # define-element (proposal)
 
 `<define-element>` - custom element to declare custom elements. (Similar to `<defs>` in SVG).
-
-Getting existing things together in one ergonomic way.
+Compilation of existing proposals / prototypes.
 
 ```html
 <define-element>
@@ -11,7 +10,7 @@ Getting existing things together in one ergonomic way.
 
     <script scoped>
       let id
-      this.onconnected = () => id = setInterval(() => this.params.time = new Date(), 1000)
+      this.onconnected = () => id = setInterval(() => this.field.time = new Date(), 1000)
       this.ondisconnected = () => clearInterval(id)
     </script>
 
@@ -63,7 +62,7 @@ If `<template>` section isn't defined, the instance content preserved as is.
 
 #### Why? 
 
-Template-instantiation proposal naturally accomodates for template fields/parts, making it work outside of `<template>` tag would encounter many issues: [parsing table](https://github.com/github/template-parts/issues/24), [SVG attributes](https://github.com/github/template-parts/issues/25), [liquid syntax](https://shopify.github.io/liquid/tags/template/#raw) conflict etc.
+Template-instantiation proposal naturally accomodates for template fields/parts, making it work outside of `<template>` tag would encounter certain issues: [parsing table](https://github.com/github/template-parts/issues/24), [SVG attributes](https://github.com/github/template-parts/issues/25), [liquid syntax](https://shopify.github.io/liquid/tags/template/#raw) conflict etc.
 
 Single `<define-element>` can define multiple custom elements.
 
@@ -112,55 +111,55 @@ See [Element Properties proposal](https://github.com/developit/unified-element-p
       <h1>{{ user.name }}</h1>Email: <a href="mailto:{{ user.email }}">{{ user.email }}</a>
     </template>
     <script scoped>
-      this.params.user = { name: 'Harry Krishna', email: 'krishn@hari.om' }
+      this.field.user = { name: 'George Harisson', email: 'george@harisson.om' }
     </script>
   </my-element>
 </define-element>
 ```
 
-Template part values are available as `element.params` object. Changing any of the `params.*` automatically rerenders the template.
+Template part values are available as `element.field` object. Changing any of the `field.*` automatically rerenders the template.
 
-Parts can potentially support reactive types as well: _Promise_/_Thenable_, _Observable_/_Subject_, _AsyncIterable_ etc. In that case update happens by changing the reactive state:
+A field can potentially support reactive types as well: _Promise_/_Thenable_, _Observable_/_Subject_, _AsyncIterable_ etc. In that case update happens by changing the reactive state:
 
 ```html
 <template>{{ count }}</template>
 <script scoped>
-  this.params.count = asyncIterator
+  this.field.count = asyncIterator
 </script>
 ```
 
-See [template-parts](https://github.com/dy/template-parts) / [templize](https://github.com/dy/templize) - ponyfills for _Template-Parts_ proposal.
+See [template-parts](https://github.com/dy/template-parts), [template-expressions](https://github.com/luwes/template-extensions) – polyfills for _Template-Parts_ proposal.
 
 ## Expressions
 
-Syntax can be full JS or subset like [Justin](https://github.com/dy/subscript?tab=readme-ov-file#justin):
+Syntax is [JS subset](https://github.com/dy/subscript?tab=readme-ov-file#justin):
 
 Part | Expression | Accessible as
 ---|---|---
-Value | `{{ foo }}` | `params.foo` 
-Property | `{{ foo.bar?.baz }}`, `{{ foo["bar"] }}` | `params.foo.bar` 
-Function call | `{{ foo(bar) }}` | `params.foo`, `params.bar` 
-Method call | `{{ foo.bar() }}` | `params.foo.bar` 
-Boolean operators | `{{ !foo && bar \|\| baz }}` | `params.foo`, `params.bar`, `params.baz` 
-Ternary | `{{ foo ? bar : baz }}` | `params.foo`, `params.bar`, `params.baz` 
+Value | `{{ foo }}` | `field.foo` 
+Property | `{{ foo.bar?.baz }}`, `{{ foo["bar"] }}` | `field.foo.bar` 
+Function call | `{{ foo(bar) }}` | `field.foo`, `field.bar` 
+Method call | `{{ foo.bar() }}` | `field.foo.bar` 
+Boolean operators | `{{ !foo && bar \|\| baz }}` | `field.foo`, `field.bar`, `field.baz` 
+Ternary | `{{ foo ? bar : baz }}` | `field.foo`, `field.bar`, `field.baz` 
 Primitives | `{{ "foo" }}`, `{{ true }}`, `{{ 0.1 }}` | 
-Comparison | `{{ foo == 1 }}`, `{{ bar > foo }}` | `params.foo`, `params.bar` 
-Math | `{{ a * 2 + b / 3 }}` | `params.a`, `params.b` 
-Loop | `{{ item, idx in list }}` | `params.list` 
-Spread | `{{ ...foo }}` | `params.foo` 
+Comparison | `{{ foo == 1 }}`, `{{ bar > foo }}` | `field.foo`, `field.bar` 
+Math | `{{ a * 2 + b / 3 }}` | `field.a`, `field.b` 
+Loop | `{{ item, idx in list }}` | `field.list` 
+Spread | `{{ ...foo }}` | `field.foo` 
 
-### Loops (tentative)
+### Loops
 
-Iteration can be organized via `:for` directive:
+Organized via `foreach` directive:
 
 ```html
 <define-element>
   <ul is="my-list">
     <template>
-      <li :for="{{ item, index in items }}" id="item-{{ index }}">{{ item.text }}</li>
+      <template directive="foreach" expression="item, index in items"><li id="item-{{ index }}">{{ item.text }}</li></template>
     </template>
     <script scoped>
-      this.params.items = [1,2,3]
+      this.field.items = [1,2,3]
     </script>
   </ul>
 </define-element>
@@ -168,22 +167,9 @@ Iteration can be organized via `:for` directive:
 <ul is="my-list"></ul>
 ```
 
-Note that `index` starts with `1`, not `0`.
+### Conditions
 
-Cases:
-
-```html
-<li :for="{{ item, index in array }}">
-<li :for="{{ key, value, index in object }}">
-<li :for="{{ count in number }}">
-```
-
-_Alternatively_, `<template directive="each" expression="{{ item in items }}"` can be used from _Template Instantiation_ proposal.
-The drawback of proposal - it's verbose and not clear if `expression="item in items"` vs `expression="{{ item in items}}"`.
-
-### Conditions (tentative)
-
-Conditions can be organized either as ternary template part or via `:if`, `:else-if`, `:else` directives.
+Organized via `if` directive or ternary operator.
 
 For text variants ternary operator is shorter:
 
@@ -191,17 +177,13 @@ For text variants ternary operator is shorter:
 <span>Status: {{ status === 0 ? 'Active' : 'Inactive' }}</span>
 ```
 
-To optionally display an element, use `:if`-`:else-if`-`:else`:
+To optionally display an element, use `if`-`else if`-`else` directives:
 
 ```html
-<span :if="{{ status === 0 }}">Inactive</span>
-<span :else :if="{{ status === 1 }}">Active</span>
-<span :else>Finished</span>
+<template directive="if" expression="status === 0">Inactive</template>
+<template directive="else if" expression="status === 1">Active</template>
+<template directive="else">Finished</template>
 ```
-
-_Alternatively_, `<template directive="if" expression="{{ status === 0 }}"` can be used from _Template Instantiation_ proposal.
-The drawback of proposal - it's verbose and not clear if `expression="status === 0"` vs `expression="{{ status === 0 }}"`.
-
 
 ## Shadowmode
 
@@ -220,7 +202,7 @@ See [declarative-shadow-dom](https://developer.chrome.com/docs/css-ui/declarativ
 
 ## Slots
 
-Content can be redirected either from instances or inheriting elements via slots mechanism:
+Slots allow injecting content into instances aside from attributes.
 
 ```html
 <define-element>
@@ -233,8 +215,8 @@ Content can be redirected either from instances or inheriting elements via slots
 </define-element>
 
 <my-element>
-  <span slot="title">Hare Krishna!</span>
-  <span slot="content">Srila Prabhupada Ki Jay!</span>
+  <span slot="title">Hello World</span>
+  <span slot="content">Our adventure has begun</span>
 </my-element>
 ```
 
@@ -242,22 +224,20 @@ Content can be redirected either from instances or inheriting elements via slots
 
 There are two possible ways to attach scripts to the defined element.
 
-_First_ is via `scoped` script attribute. That enables script to run with `this` defined as _element_ instance, instead of _window_. Also, it automatically exposes internal element references by `part`.
+_First_ is via `scoped` script attribute. That enables script to run with `this` defined as _element_ instance, instead of _window_. Also, it automatically exposes internal element references as parts.
 
 Script runs in `connectedCallback` with children and properties parsed and present on the element.
-`scoped` attribute makes `this` point to the _element_ instance, instead of _window_.
 
 ```html
 <define-element>
-  <main-header content:string>
+  <main-header text:string>
     <template>
       <h1 part="header">{{ content }}</h1>
     </template>
     <script scoped>
       this // my-element
-      this.parts.header // h1
-      this.params.content
-      this.props.content
+      this.part.header // h1
+      this.field.content = this.prop.text
     </script>
   </main-header>
 </define-element>
@@ -292,11 +272,11 @@ At the same time, it would require manual control over children, props and react
 Styles can be defined either globally or with `scoped` attribute, limiting CSS to only component instances.
 
 ```html
-<define-element name="percentage-bar">
-  <template shadowmode="closed">
-    <div id="progressbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{root.attributes.percentage.value}}">
-      <div id="bar" style="width: {{root.attributes.percentage.value}}%"></div>
-      <div id="label"><slot></slot></div>
+<define-element name="percentage-bar" percentage:number="0">
+  <template shadowrootmode="closed">
+    <div id="progressbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{percentage}}">
+      <div part="bar" style="width: {{percentage}}%"></div>
+      <div part="label"><slot></slot></div>
     </div>
   </template>
   <style scoped>
@@ -320,8 +300,7 @@ There are `connected`, `disconnected` and `attributechanged` events generated to
 <define-element>
   <x-element>
     <script scoped>
-      // by default the script is run when instance is `connected`
-      // to have children and attributes available
+      // by default the script is run once when instance is `connected`, to have children and attributes available
 
       this.onconnected = () => console.log('connected')
       this.ondisconnected = () => console.log('disconnected')
@@ -334,7 +313,6 @@ There are `connected`, `disconnected` and `attributechanged` events generated to
 See [disconnected](https://github.com/WebReflection/disconnected), [attributechanged](https://github.com/WebReflection/attributechanged).
 
 
-
 ## Examples
 
 ### Hello World
@@ -344,7 +322,7 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
   <welcome-user>
     <template>Hello, {{ name || '...' }}</template>
     <script scoped>
-      this.params.name = await fetch('/user').json()
+      this.field.name = await fetch('/user').json()
     </script>
   </welcome-user>
 </define-element>
@@ -361,9 +339,9 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       <time part="timer">{{ count }}</time>
     </template>
     <script scoped>
-      this.params.count = this.props.start
+      this.field.count = this.prop.start
       let id
-      this.onconnected = () => id = setInterval(() => this.params.count++, 1000)
+      this.onconnected = () => id = setInterval(() => this.field.count++, 1000)
       this.ondisconnected = () => clearInterval(id)
     </script>
   </x-timer>
@@ -381,9 +359,9 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       <time datetime="{{ time }}">{{ time.toLocaleTimeString() }}</time>
     </template>
     <script scoped>
-      this.params.time = this.props.start || new Date();
+      this.field.time = this.prop.start || new Date();
       let id
-      this.onconnected = () => id = setInterval(() => this.params.time = new Date(), 1000)
+      this.onconnected = () => id = setInterval(() => this.field.time = new Date(), 1000)
       this.ondisconnected = () => clearInterval(id)
     </script>
     <style scoped>
@@ -406,8 +384,8 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       <button part="dec">‐</button>
     </template>
     <script scoped>
-      this.parts.inc.onclick = e => this.props.count++
-      this.parts.dec.onclick = e => this.props.count--
+      this.part.inc.onclick = e => this.props.count++
+      this.part.dec.onclick = e => this.props.count--
     </script>
   </x-counter>
 </define-element>
@@ -423,16 +401,16 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
       <input part="text" placeholder="Add Item..." required>
       <button type="submit">Add</button>
       <ul class="todo-list">
-        <li class="todo-item" :for="{{ item in todos }}">{{ item.text }}</li>
+        <template directive="foreach" expression="items in todos"><li class="todo-item">{{ item.text }}</li></template>
       </ul>
     </template>
     <script scoped>
       // initialize from child nodes
-      this.params.todos = this.children.map(child => {text: child.textContent})
-      this.parts.text.onsubmit = e => {
+      this.field.todos = this.children.map(child => {text: child.textContent})
+      this.part.text.onsubmit = e => {
         e.preventDefault()
         if (form.checkValidity()) {
-          this.params.todos.push({ text: this.parts.text.value })
+          this.field.todos.push({ text: this.part.text.value })
           form.reset()
         }
       }
@@ -451,17 +429,17 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 ```html
 <define-element>
   <form is="validator-form">
-    <template shadowroot="closed">
+    <template shadowrootmode="closed">
       <label for=email>Please enter an email address:</label>
       <input id="email">
-      <span :if="{{ !valid }}">The address is invalid</span>
+      <template expression="!valid" directive="if">The address is invalid</span></template>
     </template>
 
     <script scoped type="module">
       const isValidEmail = s => /.+@.+\..+/i.test(s);
       export default class ValidatorForm extends HTMLFormElement {
         constructor () {
-          this.email.onchange= e => this.params.valid = isValidEmail(e.target.value)
+          this.email.onchange= e => this.field.valid = isValidEmail(e.target.value)
         }
       }
     </script>
