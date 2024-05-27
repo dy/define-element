@@ -1,4 +1,4 @@
-# define-element
+# define-element (proposal)
 
 `<define-element>` - custom element to declare custom elements. (Similar to `<defs>` in SVG).
 Compilation of existing proposals / prototypes.
