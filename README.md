@@ -1,7 +1,7 @@
-# define-element (proposal)
+# define-element
 
-`<define-element>` - custom element to declare custom elements. (Similar to `<defs>` in SVG).
-Compilation of existing proposals / prototypes.
+`<define-element>` - a custom element to define custom elements. Similar to `<defs>` in SVG.
+
 
 ```html
 <define-element>
@@ -38,7 +38,7 @@ Compilation of existing proposals / prototypes.
 
 ## Element Definition
 
-Element is defined by-example (similar to `<defs>` in SVG) and may contain `<template>`, `<style>` and `<script>` sections.
+Element is defined by-example and may contain `<template>`, `<style>` and `<script>` sections.
 
 ```html
 <define-element>
@@ -56,15 +56,15 @@ Element is defined by-example (similar to `<defs>` in SVG) and may contain `<tem
 <my-element></my-element>
 ```
 
-Instances of `<element-name>` automatically receive defined attributes and content.
+Single `<define-element>` can define multiple custom elements.
+Instances of `<my-element>` automatically receive defined attributes and content.
 
 If `<template>` section isn't defined, the instance content preserved as is.
 
-#### Why? 
+#### Why?
 
 Template-instantiation proposal naturally accomodates for template fields/parts, making it work outside of `<template>` tag would encounter certain issues: [parsing table](https://github.com/github/template-parts/issues/24), [SVG attributes](https://github.com/github/template-parts/issues/25), [liquid syntax](https://shopify.github.io/liquid/tags/template/#raw) conflict etc.
 
-Single `<define-element>` can define multiple custom elements.
 
 
 ## Property types
@@ -136,17 +136,17 @@ Syntax is [JS subset](https://github.com/dy/subscript?tab=readme-ov-file#justin)
 
 Part | Expression | Accessible as
 ---|---|---
-Value | `{{ foo }}` | `field.foo` 
-Property | `{{ foo.bar?.baz }}`, `{{ foo["bar"] }}` | `field.foo.bar` 
-Function call | `{{ foo(bar) }}` | `field.foo`, `field.bar` 
-Method call | `{{ foo.bar() }}` | `field.foo.bar` 
-Boolean operators | `{{ !foo && bar \|\| baz }}` | `field.foo`, `field.bar`, `field.baz` 
-Ternary | `{{ foo ? bar : baz }}` | `field.foo`, `field.bar`, `field.baz` 
-Primitives | `{{ "foo" }}`, `{{ true }}`, `{{ 0.1 }}` | 
-Comparison | `{{ foo == 1 }}`, `{{ bar > foo }}` | `field.foo`, `field.bar` 
-Math | `{{ a * 2 + b / 3 }}` | `field.a`, `field.b` 
-Loop | `{{ item, idx in list }}` | `field.list` 
-Spread | `{{ ...foo }}` | `field.foo` 
+Value | `{{ foo }}` | `field.foo`
+Property | `{{ foo.bar?.baz }}`, `{{ foo["bar"] }}` | `field.foo.bar`
+Function call | `{{ foo(bar) }}` | `field.foo`, `field.bar`
+Method call | `{{ foo.bar() }}` | `field.foo.bar`
+Boolean operators | `{{ !foo && bar \|\| baz }}` | `field.foo`, `field.bar`, `field.baz`
+Ternary | `{{ foo ? bar : baz }}` | `field.foo`, `field.bar`, `field.baz`
+Primitives | `{{ "foo" }}`, `{{ true }}`, `{{ 0.1 }}` |
+Comparison | `{{ foo == 1 }}`, `{{ bar > foo }}` | `field.foo`, `field.bar`
+Math | `{{ a * 2 + b / 3 }}` | `field.a`, `field.b`
+Loop | `{{ item, idx in list }}` | `field.list`
+Spread | `{{ ...foo }}` | `field.foo`
 
 ### Loops
 
@@ -254,7 +254,7 @@ At the same time, it would require manual control over children, props and react
   <my-element>
     <template></template>
     <script type="module">
-      export default class MyCustomElement extends HTMLElement {
+      export default class extends HTMLElement {
         constructor() {
           super()
         }
@@ -448,6 +448,11 @@ See [disconnected](https://github.com/WebReflection/disconnected), [attributecha
 
 <form is="validator-form"></form>
 ```
+
+## Why
+
+While [DCE proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md) is stalling, we need something that works. Besides the proposal looks too heavy.
+PE frameworks like [sprae](https://github.com/dy/sprae) miss genuine components.
 
 ## Refs
 
