@@ -1,42 +1,35 @@
 {
-  "name": "element-defs",
-  "version": "0.0.0",
-  "description": "Template, defining custom elements",
+  "name": "define-element",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A custom element to define custom elements",
   "main": "index.js",
+  "module": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
   "scripts": {
-    "start": "chokidar \"*.js\" -c \"npm run build\"",
-    "build": "esbuild index.js --bundle --outdir=dist --sourcemap",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node -r ./test/register.cjs test/test.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spectjs/element-defs.git"
+    "url": "git+https://github.com/dy/define-element.git"
   },
   "keywords": [
-    "uce-template",
     "declarative-custom-element",
-    "vue3",
-    "reactive",
-    "spect",
     "custom-element",
     "web-components",
-    "element-props",
-    "template-parts"
+    "define-element"
   ],
   "author": "dmitry iv.",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/spectjs/element-defs/issues"
+    "url": "https://github.com/dy/define-element/issues"
   },
-  "homepage": "https://github.com/spectjs/element-defs#readme",
-  "dependencies": {
-    "@github/template-parts": "^0.2.3",
-    "element-props": "^1.3.1",
-    "subscript": "^6.2.0",
-    "templize": "^1.1.1"
-  },
+  "homepage": "https://github.com/dy/define-element#readme",
   "devDependencies": {
-    "chokidar-cli": "^2.1.0",
-    "tst": "^7.0.0"
+    "jsdom": "^28.1.0",
+    "tst": "^7.3.0",
+    "wait-please": "^3.1.0"
   }
 }
