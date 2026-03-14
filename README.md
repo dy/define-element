@@ -1,10 +1,7 @@
-# define-element
+# define-element [![npm](https://img.shields.io/npm/v/define-element?color=tomato)](https://npmjs.org/define-element) [![size](https://img.shields.io/bundlephobia/minzip/define-element?label=size&color=brightgreen)](https://bundlephobia.com/package/define-element) [![ci](https://github.com/dy/define-element/actions/workflows/ci.yml/badge.svg)](https://github.com/dy/define-element/actions/workflows/ci.yml)
 
 A custom element to define custom elements.
 
-[![npm](https://img.shields.io/npm/v/define-element?color=tomato)](https://npmjs.org/define-element)
-[![size](https://img.shields.io/bundlephobia/minzip/define-element?label=size&color=brightgreen)](https://bundlephobia.com/package/define-element)
-[![ci](https://github.com/dy/define-element/actions/workflows/ci.yml/badge.svg)](https://github.com/dy/define-element/actions/workflows/ci.yml)
 
 ```html
 <define-element>
