@@ -792,8 +792,12 @@
   // Processor tab switching
   const procExamples = {
     sprae: `<span class="k">import</span> <span class="n">sprae</span> <span class="k">from</span> <span class="v">'sprae'</span>
+<span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
-<span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">).</span><span class="a">processor</span> <span class="p">=</span> <span class="n">sprae</span>
+<span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
+  <span class="n">root</span><span class="p">.</span><span class="f">appendChild</span><span class="p">(</span><span class="n">root</span><span class="p">.</span><span class="a">template</span><span class="p">.</span><span class="a">content</span><span class="p">.</span><span class="f">cloneNode</span><span class="p">(</span><span class="v">true</span><span class="p">))</span>
+  <span class="k">return</span> <span class="f">sprae</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+<span class="p">}</span>
 
 <span class="c">// &lt;x-counter count:number="0"&gt;</span>
 <span class="c">//   &lt;template&gt;</span>
@@ -805,6 +809,7 @@
 <span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
 <span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
+  <span class="n">root</span><span class="p">.</span><span class="f">appendChild</span><span class="p">(</span><span class="n">root</span><span class="p">.</span><span class="a">template</span><span class="p">.</span><span class="a">content</span><span class="p">.</span><span class="f">cloneNode</span><span class="p">(</span><span class="v">true</span><span class="p">))</span>
   <span class="k">let</span> <span class="n">r</span> <span class="p">=</span> <span class="n">Alpine</span><span class="p">.</span><span class="f">reactive</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
   <span class="n">Alpine</span><span class="p">.</span><span class="f">addScopeToNode</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
   <span class="n">Alpine</span><span class="p">.</span><span class="f">initTree</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
@@ -820,8 +825,12 @@
     'petite-vue': `<span class="k">import</span> <span class="p">{</span> <span class="n">createApp</span><span class="p">,</span> <span class="n">reactive</span> <span class="p">}</span> <span class="k">from</span> <span class="v">'petite-vue'</span>
 <span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
-<span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) =></span>
-  <span class="p">(</span><span class="f">createApp</span><span class="p">(</span><span class="n">state</span><span class="p">).</span><span class="f">mount</span><span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="f">reactive</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+<span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
+  <span class="n">root</span><span class="p">.</span><span class="f">appendChild</span><span class="p">(</span><span class="n">root</span><span class="p">.</span><span class="a">template</span><span class="p">.</span><span class="a">content</span><span class="p">.</span><span class="f">cloneNode</span><span class="p">(</span><span class="v">true</span><span class="p">))</span>
+  <span class="k">let</span> <span class="n">r</span> <span class="p">=</span> <span class="f">reactive</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+  <span class="f">createApp</span><span class="p">(</span><span class="n">r</span><span class="p">).</span><span class="f">mount</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">r</span>
+<span class="p">}</span>
 
 <span class="c">// &lt;x-counter count:number="0"&gt;</span>
 <span class="c">//   &lt;template&gt;</span>

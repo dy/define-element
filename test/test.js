@@ -12,6 +12,9 @@ const h = (html) => {
   return div
 }
 
+// helper: clone template into root (processor contract)
+const clone = (root) => root.template && root.appendChild(root.template.content.cloneNode(true))
+
 
 test('basic: static template', async () => {
   let el = h(`
@@ -449,6 +452,7 @@ test('lifecycle: reparenting preserves state', async () => {
 test('processor: pluggable template engine', async () => {
   let prevProcessor = DefineElement.processor
   DefineElement.processor = (root, state) => {
+    clone(root)
     root.querySelectorAll('[data-field]').forEach(el => {
       el.textContent = state[el.dataset.field] ?? ''
     })
@@ -478,7 +482,7 @@ test('processor: pluggable template engine', async () => {
 test('processor: receives correct state', async () => {
   let captured = null
   let prevProcessor = DefineElement.processor
-  DefineElement.processor = (root, state) => { captured = { ...state }; return state }
+  DefineElement.processor = (root, state) => { clone(root); captured = { ...state }; return state }
 
   let el = h(`
     <define-element>
@@ -504,7 +508,7 @@ test('processor: receives correct state', async () => {
 test('processor: receives original template element', async () => {
   let capturedTpl = null
   let prevProcessor = DefineElement.processor
-  DefineElement.processor = (root, state) => { capturedTpl = root.template; return state }
+  DefineElement.processor = (root, state) => { capturedTpl = root.template; clone(root); return state }
 
   let el = h(`
     <define-element>
@@ -761,6 +765,7 @@ test('is: extending built-in element', async () => {
 
 // Simulate sprae: reactive proxy that binds :text and :onclick directives
 function spraelike(root, state) {
+  clone(root)
   let bindings = []
   root.querySelectorAll('[\\:text]').forEach(el => {
     let key = el.getAttribute(':text')
@@ -985,6 +990,7 @@ test('processor[template-parts]: attribute bindings', async () => {
 // Simulate petite-vue: createApp(state).mount(root), reactive(state)
 // Processes v-text and {{ }} interpolation, returns reactive proxy
 function petiteVueLike(root, state) {
+  clone(root)
   let bindings = []
   // v-text
   root.querySelectorAll('[v-text]').forEach(el => {
@@ -1062,6 +1068,7 @@ test('processor[petite-vue]: v-text + {{ }} + reactivity', async () => {
 
 // Simulate Alpine.js: x-text, x-bind, x-show directives with reactive proxy
 function alpineLike(root, state) {
+  clone(root)
   let bindings = []
   root.querySelectorAll('[x-text]').forEach(el => {
     let key = el.getAttribute('x-text')
@@ -1208,6 +1215,7 @@ test('processor: no processor — static template', async () => {
 test('processor: state syncs props ↔ attributes ↔ state', async () => {
   let prev = DefineElement.processor
   DefineElement.processor = (root, state) => {
+    clone(root)
     return new Proxy(state, {
       set(t, k, v) { t[k] = v; return true }
     })
@@ -1243,6 +1251,7 @@ test('processor: dispose via ondisconnected', async () => {
   let disposed = false
   let prev = DefineElement.processor
   DefineElement.processor = (root, state) => {
+    clone(root)
     state.dispose = () => { disposed = true }
     return state
   }
@@ -1350,6 +1359,7 @@ test('integration[petite-vue]: v-text + reactivity', async () => {
   let { createApp, reactive, nextTick } = await import('petite-vue')
   let prev = DefineElement.processor
   DefineElement.processor = (root, state) => {
+    clone(root)
     let r = reactive(state)
     createApp(r).mount(root)
     return r
@@ -1395,6 +1405,7 @@ test('integration[petite-vue]: multiple instances independent', async () => {
   let { createApp, reactive } = await import('petite-vue')
   let prev = DefineElement.processor
   DefineElement.processor = (root, state) => {
+    clone(root)
     let r = reactive(state)
     createApp(r).mount(root)
     return r
@@ -1433,6 +1444,7 @@ test('integration[alpinejs]: x-text + reactivity', async () => {
   let Alpine = mod.Alpine
   let prev = DefineElement.processor
   DefineElement.processor = (root, state) => {
+    clone(root)
     let r = Alpine.reactive(state)
     Alpine.addScopeToNode(root, r)
     Alpine.initTree(root)
@@ -1673,6 +1685,80 @@ test('props: function prop updates state without lossy round-trip', async () => 
   inst.handler = fn
   is(inst.state.handler, fn)
   is(typeof inst.state.handler, 'function')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
+
+test("processor: parent directives don't leak into template (light DOM)", async () => {
+  let prev = DefineElement.processor
+  // processor that renders :text bindings from cloned template only
+  DefineElement.processor = (root, state) => {
+    clone(root)
+    // only processes cloned template children, not root's own attributes
+    root.querySelectorAll('[\\:text]').forEach(el => {
+      el.textContent = state[el.getAttribute(':text')] ?? ''
+    })
+    return state
+  }
+
+  let el = h(`
+    <define-element>
+      <x-noleak1 msg:string="hello">
+        <template><span :text="msg"></span></template>
+      </x-noleak1>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-noleak1')
+  // parent directive attrs — should be ignored by child processor
+  inst.setAttribute(':msg', 'parentExpr')
+  inst.setAttribute('x-text', 'parentExpr')
+  inst.setAttribute('v-bind:class', 'parentCls')
+  document.body.appendChild(inst)
+
+  // template content rendered correctly
+  is(inst.querySelector('span').textContent, 'hello')
+
+  // parent directives untouched
+  is(inst.getAttribute(':msg'), 'parentExpr')
+  is(inst.getAttribute('x-text'), 'parentExpr')
+  is(inst.getAttribute('v-bind:class'), 'parentCls')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
+
+
+test("processor: shadow DOM isolates root from host attrs", async () => {
+  let rootType = null
+  let prev = DefineElement.processor
+  DefineElement.processor = (root, state) => {
+    clone(root)
+    rootType = root.constructor.name
+    return state
+  }
+
+  let el = h(`
+    <define-element>
+      <x-shadow-iso>
+        <template shadowrootmode="open"><span>shadow</span></template>
+      </x-shadow-iso>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-shadow-iso')
+  inst.setAttribute(':name', 'should-stay')
+  document.body.appendChild(inst)
+
+  // root is ShadowRoot — naturally isolated from host element attrs
+  is(rootType, 'ShadowRoot')
+  is(inst.getAttribute(':name'), 'should-stay')
+  ok(inst.shadowRoot.querySelector('span'))
 
   DefineElement.processor = prev
   inst.remove()

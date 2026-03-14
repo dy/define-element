@@ -105,10 +105,6 @@ function define(el) {
           root = this.shadowRoot || this.attachShadow({ mode: shadowMode })
         }
 
-        if (tpl && !root.firstChild) {
-          root.appendChild(tpl.content.cloneNode(true))
-        }
-
         // inject style
         if (styleText) {
           if (shadowMode) {
@@ -131,13 +127,7 @@ function define(el) {
           }
         }
 
-        // collect parts
-        this.part = {}
-        root.querySelectorAll('[part]').forEach(p =>
-          this.part[p.getAttribute('part')] = p
-        )
-
-        // expose original template on root for processors that need it
+        // expose original template for processors
         if (tpl) root.template = tpl
 
         // build initial state from prop defaults + current attributes
@@ -148,14 +138,24 @@ function define(el) {
           state[p.name] = attrVal != null ? coerce(attrVal) : this._de_props[p.name]
         }
 
-        // run processor (per-definition > global)
+        // run processor or clone template
         let p = DefineElement.processor
         if (p) {
+          // processor owns template mounting — no pre-clone
           let result = p(root, state)
           this.state = result || state
         } else {
+          if (tpl && !root.firstChild) {
+            root.appendChild(tpl.content.cloneNode(true))
+          }
           this.state = state
         }
+
+        // collect parts (after processor, since it populates root)
+        this.part = {}
+        root.querySelectorAll('[part]').forEach(p =>
+          this.part[p.getAttribute('part')] = p
+        )
 
         // run script (errors in injected scripts don't throw — browser reports via onerror)
         if (scriptText) runScript(scriptText, this)
@@ -267,3 +267,5 @@ class DefineElement extends HTMLElement {
 DefineElement.processor = null
 
 customElements.define('define-element', DefineElement)
+
+export { DefineElement, define }

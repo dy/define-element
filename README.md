@@ -149,15 +149,26 @@ Add `shadowrootmode` to the template for encapsulation. Slots work natively:
 
 ## Processor
 
-Pluggable template engine. Without a processor, templates are static HTML. Set `.processor` to a `(root, state) => state` function — called once per instance after template content is cloned into `root`.
-
-`root` is the render target — the element itself (light DOM) or its `shadowRoot` (shadow DOM), with template content already cloned in. The original `<template>` element is available as `root.template` for processors that need it.
+Pluggable template engine. Without a processor, templates are static HTML (cloned automatically). With a processor, the processor owns template mounting — it receives an empty `root` with `root.template` pointing to the original `<template>` element, and is responsible for cloning/rendering content.
 
 ```js
-import sprae from 'sprae'
+processor(root, state) => state
+```
 
-// sprae matches the signature directly — returns a reactive store
-customElements.get('define-element').processor = sprae
+- `root` — element (light DOM) or shadowRoot (shadow DOM), empty
+- `root.template` — original `<template>` element (shared across instances)
+- `state` — `{ propName: value }` from prop defaults + instance attributes
+- Returns reactive state object (stored as `el.state`)
+
+```js
+let DE = customElements.get('define-element')
+
+// sprae — clone template, then sprae processes content reactively
+import sprae from 'sprae'
+DE.processor = (root, state) => {
+  root.appendChild(root.template.content.cloneNode(true))
+  return sprae(root, state)
+}
 ```
 
 ```html
@@ -175,22 +186,26 @@ customElements.get('define-element').processor = sprae
 No `<script>` needed — [sprae](https://github.com/dy/sprae) updates the template automatically when state changes. Other processors:
 
 ```js
-let DE = customElements.get('define-element')
-
-// @github/template-parts ({{x}} interpolation, W3C Template Instantiation proposal)
+// @github/template-parts — renders directly from template, no pre-clone needed
 import { TemplateInstance } from '@github/template-parts'
 DE.processor = (root, state) => {
   root.replaceChildren(new TemplateInstance(root.template, state))
   return state
 }
 
-// petite-vue (v-text, v-bind, {{ }})
+// petite-vue
 import { createApp, reactive } from 'petite-vue'
-DE.processor = (root, state) => (createApp(state).mount(root), reactive(state))
+DE.processor = (root, state) => {
+  root.appendChild(root.template.content.cloneNode(true))
+  let r = reactive(state)
+  createApp(r).mount(root)
+  return r
+}
 
-// Alpine.js (x-text, x-bind, @click)
+// Alpine.js
 import Alpine from 'alpinejs'
 DE.processor = (root, state) => {
+  root.appendChild(root.template.content.cloneNode(true))
   let r = Alpine.reactive(state)
   Alpine.addScopeToNode(root, r)
   Alpine.initTree(root)
@@ -216,7 +231,7 @@ The [W3C Declarative Custom Elements proposal](https://github.com/WICG/webcompon
 
 The gap: no lightweight way to define a custom element as HTML — components as content, not as code. Paste a `<define-element>` block into any page, CMS, or markdown file and it works. No npm, no import maps, no build step. One `<script>` tag.
 
-This ~265-line reference implementation is evidence that the W3C proposal is implementable and useful. Ship it natively.
+This ~270-line reference implementation is evidence that the W3C proposal is implementable and useful. Ship it natively.
 
 
 ## Alternatives
