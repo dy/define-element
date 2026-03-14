@@ -2,10 +2,9 @@
 
 A custom element to define custom elements.
 
-* Components as content, not code — paste into any page, CMS, or markdown
-* No class, no build, no framework — one `<script>` tag
-* Typed props, scoped styles, shadow DOM, slots, lifecycle
-* Pluggable template engine — native components for [sprae](https://github.com/dy/sprae), [Alpine](https://alpinejs.dev), [petite-vue](https://github.com/vuejs/petite-vue), [template-parts](https://github.com/nicegist/template-parts) and others
+* Native web components for [sprae](https://github.com/dy/sprae), [Alpine](https://alpinejs.dev), [petite-vue](https://github.com/vuejs/petite-vue), [template-parts](https://github.com/nicegist/template-parts) and others
+* Typed props, scoped styles, shadow DOM, slots, lifecycle — one `<script>` tag
+* A reference implementation of the [W3C Declarative Custom Elements proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md)
 
 
 ```html
@@ -217,7 +216,7 @@ The [W3C Declarative Custom Elements proposal](https://github.com/WICG/webcompon
 
 The gap: no lightweight way to define a custom element as HTML — components as content, not as code. Paste a `<define-element>` block into any page, CMS, or markdown file and it works. No npm, no import maps, no build step. One `<script>` tag.
 
-This ~265-line polyfill is evidence that the W3C proposal is implementable and useful. Ship it natively.
+This ~265-line reference implementation is evidence that the W3C proposal is implementable and useful. Ship it natively.
 
 
 ## Alternatives
