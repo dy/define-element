@@ -1,6 +1,6 @@
 {
   "name": "define-element",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "A custom element to define custom elements",
   "main": "index.js",
