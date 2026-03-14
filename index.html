@@ -10,17 +10,17 @@
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --fg: #1a1a2e;
-    --fg2: #4b5563;
-    --fg3: #9ca3af;
-    --bg: #fafafa;
-    --bg2: #ffffff;
-    --border: #e5e7eb;
-    --accent: #4338ca;
-    --accent2: #6366f1;
-    --accent-soft: #eef2ff;
-    --code-bg: #f3f4f6;
-    --radius: 8px;
+    --fg: oklch(0.25 0.02 250);
+    --fg2: oklch(0.48 0.02 250);
+    --fg3: oklch(0.65 0.02 250);
+    --bg: oklch(0.97 0.005 250);
+    --bg2: oklch(1 0 0);
+    --border: oklch(0.91 0.01 250);
+    --accent: oklch(0.59 0.18 255);
+    --accent2: oklch(0.68 0.15 255);
+    --accent-soft: oklch(0.96 0.02 255);
+    --code-bg: oklch(0.95 0.007 250);
+    --radius: 6px;
     --mono: 'IBM Plex Mono', monospace;
     --sans: 'Inter', system-ui, sans-serif;
   }
@@ -30,7 +30,7 @@
   body {
     font-family: var(--sans);
     color: var(--fg);
-    background: var(--bg);
+    background: radial-gradient(ellipse at 50% -200px, oklch(1 0 0 / 0.8), oklch(1 0 0 / 0.3) 300px, transparent 600px) no-repeat, var(--bg);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
@@ -62,13 +62,7 @@
 
   /* --- Nav --- */
   nav {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: rgba(250, 250, 250, 0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 0;
+    padding: 20px 0;
   }
   nav .wrap {
     display: flex;
@@ -79,35 +73,43 @@
     font-weight: 700;
     font-size: 15px;
     color: var(--fg);
-    text-decoration: none;
     letter-spacing: -0.02em;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
   }
-  nav .logo span { color: var(--fg3); font-weight: 400; }
-  nav .links { display: flex; gap: 24px; align-items: center; }
-  nav .links a {
+  nav .logo a {
+    color: var(--fg3);
+    font-weight: 400;
     font-size: 13px;
-    color: var(--fg2);
     text-decoration: none;
     transition: color 0.2s;
   }
-  nav .links a:hover { color: var(--fg); }
-  nav .gh {
+  nav .logo a:hover { color: var(--accent); }
+  nav .links {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  nav .links a {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    color: var(--fg3);
+    transition: color 0.2s;
   }
-  nav .gh svg { width: 16px; height: 16px; fill: currentColor; }
+  nav .links a:hover { color: var(--fg); }
+  nav .links a svg { width: 18px; height: 18px; fill: currentColor; }
 
   /* --- Hero --- */
   .hero {
-    padding: 100px 0 80px;
+    padding: 60px 0 80px;
     text-align: center;
   }
   .hero h1 {
-    font-size: 42px;
+    font-size: 38px;
     font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.15;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
     margin-bottom: 20px;
   }
   .hero h1 em {
@@ -131,10 +133,10 @@
     text-align: center;
   }
   .hero .stat-val {
-    font-size: 22px;
-    font-weight: 700;
+    font-size: 20px;
+    font-weight: 600;
     color: var(--fg);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
   .hero .stat-label {
     font-size: 11px;
@@ -155,13 +157,16 @@
     background: var(--code-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.04), 0 3px 6px oklch(0.25 0.02 250 / 0.03);
     padding: 10px 18px;
     color: var(--fg2);
     cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
+    transition: border-color 0.2s, color 0.2s, transform 0.1s;
     position: relative;
   }
-  .install-cmd:hover { border-color: var(--accent); color: var(--fg); }
+  .install-cmd:hover { border-color: var(--accent2); color: var(--fg); }
+  .install-cmd:active { transform: scale(0.98); }
+  .install-cmd.copied { border-color: var(--accent); color: var(--accent); }
   .install-cmd::before { content: '$ '; color: var(--fg3); }
 
   /* --- Code blocks --- */
@@ -170,6 +175,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
+    box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.04), 0 4px 12px oklch(0.25 0.02 250 / 0.03), 0 8px 24px oklch(0.25 0.02 250 / 0.02);
   }
   .code-bar {
     display: flex;
@@ -184,9 +190,9 @@
     border-radius: 50%;
     opacity: 0.5;
   }
-  .code-dot:nth-child(1) { background: #f87171; }
-  .code-dot:nth-child(2) { background: #fbbf24; }
-  .code-dot:nth-child(3) { background: #34d399; }
+  .code-dot:nth-child(1) { background: oklch(0.65 0.02 250); }
+  .code-dot:nth-child(2) { background: oklch(0.65 0.02 250); }
+  .code-dot:nth-child(3) { background: oklch(0.65 0.02 250); }
   .code-title {
     font-size: 11px;
     color: var(--fg3);
@@ -202,30 +208,50 @@
     color: var(--fg);
   }
 
-  /* Syntax colors */
-  .k { color: #1e40af; }    /* keyword / tag */
-  .a { color: #047857; }    /* attribute */
-  .v { color: #92400e; }    /* value */
-  .c { color: #9ca3af; }    /* comment */
-  .p { color: #6b7280; }    /* punctuation */
-  .f { color: #7c3aed; }    /* function */
-  .t { color: #be185d; }    /* type */
+  /* --- Inline code pills --- */
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+  }
+
+  /* Syntax colors — cool tones */
+  .k { color: oklch(0.55 0.18 255); }   /* keyword / tag */
+  .a { color: oklch(0.58 0.13 195); }   /* attribute */
+  .v { color: oklch(0.53 0.17 290); }   /* value */
+  .c { color: oklch(0.65 0.02 250); }   /* comment */
+  .p { color: oklch(0.52 0.02 250); }   /* punctuation */
+  .f { color: oklch(0.55 0.18 255); }   /* function */
+  .t { color: oklch(0.53 0.17 275); }   /* type */
 
   /* --- Section headings --- */
   .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--accent);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    text-transform: capitalize;
+    text-decoration: none;
+    display: inline-block;
   }
+  .section-label:hover { text-decoration: underline; }
   section h2 {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     margin-bottom: 12px;
-    line-height: 1.2;
+    line-height: 1.25;
   }
   section .lead {
     font-size: 15px;
@@ -244,6 +270,7 @@
     border-radius: var(--radius);
     overflow: hidden;
     background: var(--bg2);
+    box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.05), 0 4px 12px oklch(0.25 0.02 250 / 0.04), 0 12px 32px oklch(0.25 0.02 250 / 0.03);
   }
   .demo-panel .code-side {
     border-right: 1px solid var(--border);
@@ -269,6 +296,11 @@
     align-items: center;
     padding: 32px;
     gap: 16px;
+    background-image:
+      linear-gradient(oklch(0.92 0.005 250) 0.5px, transparent 0.5px),
+      linear-gradient(90deg, oklch(0.92 0.005 250) 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
+    background-position: 10px 10px;
   }
   .result-label {
     font-size: 10px;
@@ -292,21 +324,17 @@
   .features {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
+    gap: 0 32px;
   }
   .feature {
-    background: var(--bg2);
-    padding: 28px 24px;
+    padding: 20px 1rem 20px 0;
+    border-top: 1px solid var(--border);
   }
   .feature h3 {
     font-size: 14px;
     font-weight: 600;
-    margin-bottom: 6px;
-    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+    color: var(--fg);
   }
   .feature p {
     font-size: 13px;
@@ -314,42 +342,42 @@
     line-height: 1.6;
   }
   .feature code {
-    font-family: var(--mono);
-    font-size: 12px;
-    background: var(--code-bg);
-    padding: 1px 5px;
-    border-radius: 3px;
+    font-size: 11.5px;
   }
 
-  /* --- Processor logos --- */
-  .processor-grid {
+  /* --- Processor tabs --- */
+  .proc-tabs {
     display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-top: 24px;
+    gap: 2px;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
   }
-  .processor-card {
-    display: flex;
+  .proc-tab {
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 18px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    gap: 6px;
+    padding: 8px 16px;
     font-size: 13px;
     font-weight: 500;
-    color: var(--fg2);
-    transition: border-color 0.2s, transform 0.2s;
-  }
-  .processor-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-1px);
-  }
-  .processor-card code {
-    font-family: var(--mono);
-    font-size: 11px;
     color: var(--fg3);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+    text-decoration: none;
   }
+  .proc-tab:hover { color: var(--fg2); }
+  .proc-tab.active {
+    color: var(--fg);
+    background: var(--bg2);
+    border-bottom: 1px solid var(--bg2);
+    margin-bottom: -1px;
+  }
+  .proc-tab svg, .proc-tab img { width: 14px; height: 14px; opacity: 0.6; }
+  .proc-tab.active svg, .proc-tab.active img { opacity: 0.85; }
 
   /* --- Props table --- */
   .type-table {
@@ -363,14 +391,19 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--fg3);
-    padding: 8px 16px;
-    border-bottom: 2px solid var(--border);
+    color: var(--fg2);
+    padding: 10px 16px;
+    background: var(--code-bg);
+    border-bottom: 1px solid var(--border);
   }
   .type-table td {
     padding: 10px 16px;
     border-bottom: 1px solid var(--border);
     color: var(--fg2);
+    transition: background 0.15s;
+  }
+  .type-table tr:hover td {
+    background: var(--accent-soft);
   }
   .type-table td:first-child {
     font-family: var(--mono);
@@ -378,16 +411,12 @@
     color: var(--accent);
   }
   .type-table td code {
-    font-family: var(--mono);
-    font-size: 12px;
-    background: var(--code-bg);
-    padding: 1px 5px;
-    border-radius: 3px;
+    font-size: 11.5px;
   }
 
   /* --- Footer --- */
   footer {
-    padding: 60px 0 40px;
+    padding: 48px 0 36px;
     text-align: center;
     color: var(--fg3);
     font-size: 13px;
@@ -399,13 +428,19 @@
   }
   footer a:hover { color: var(--accent); }
   footer .om {
-    font-size: 28px;
+    font-size: 24px;
     display: block;
-    margin-top: 16px;
-    opacity: 0.3;
+    margin-top: 14px;
+    opacity: 0.25;
     transition: opacity 0.3s;
   }
-  footer .om:hover { opacity: 0.6; }
+  footer .om:hover { opacity: 0.5; }
+
+  /* --- Reduced motion --- */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { transition: none; opacity: 1; transform: none; }
+    * { transition-duration: 0.01ms !important; }
+  }
 
   /* --- Responsive --- */
   @media (max-width: 680px) {
@@ -414,6 +449,7 @@
     .demo-panel { grid-template-columns: 1fr; }
     .demo-panel .code-side { border-right: none; border-bottom: 1px solid var(--border); }
     .features { grid-template-columns: 1fr; }
+    .proc-tabs { flex-wrap: wrap; }
     section { padding: 48px 0; }
     .install-row { flex-direction: column; align-items: center; }
   }
@@ -424,27 +460,26 @@
 <!-- Nav -->
 <nav>
   <div class="wrap">
-    <a class="logo" href="#">&lt;define-element&gt; <span>v0.1</span></a>
-    <div class="links">
-      <a href="#features">Features</a>
-      <a href="#props">Props</a>
-      <a href="#processors">Processors</a>
-      <a class="gh" href="https://github.com/dy/define-element">
-        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        Source
+    <span class="logo">&lt;define-element&gt; <a href="https://github.com/dy/define-element/releases/tag/v1.0.0">v1</a></span>
+    <span class="links">
+      <a href="https://www.npmjs.com/package/define-element" title="npm">
+        <svg viewBox="0 0 16 16"><path d="M0 0v16h16V0H0zm13 13H8V5H5v8H3V3h10v10z"/></svg>
       </a>
-    </div>
+      <a href="https://github.com/dy/define-element" title="GitHub">
+        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      </a>
+    </span>
   </div>
 </nav>
 
 <!-- Hero -->
 <section class="hero">
   <div class="wrap">
-    <h1>A custom element<br>to <em>define</em> custom elements.</h1>
+    <h1>A custom element to<br><em>define custom elements</em>.</h1>
     <p class="subtitle">Components as content, not code. Paste into any page, CMS, or markdown. No class, no build, no framework.</p>
 
     <div class="install-row">
-      <span class="install-cmd" onclick="navigator.clipboard.writeText('npm i define-element');this.textContent='copied!';setTimeout(()=>this.textContent='npm i define-element',1500)" title="Click to copy">npm i define-element</span>
+      <span class="install-cmd" onclick="navigator.clipboard.writeText('npm i define-element');this.classList.add('copied');this.textContent='copied!';setTimeout(()=>{this.textContent='npm i define-element';this.classList.remove('copied')},1200)" title="Click to copy">npm i define-element</span>
     </div>
 
     <div class="stats">
@@ -468,7 +503,7 @@
 <!-- Live Demo: Counter -->
 <section id="demo">
   <div class="wrap reveal">
-    <div class="section-label">See it work</div>
+    <a class="section-label" href="#demo">See It Work</a>
     <h2>Define once, use anywhere</h2>
     <p class="lead">Write the component as HTML. Use it as HTML. That's it.</p>
 
@@ -510,7 +545,7 @@
 <!-- Features -->
 <section id="features">
   <div class="wrap reveal">
-    <div class="section-label">Features</div>
+    <a class="section-label" href="#features">Features</a>
     <h2>Everything a component needs</h2>
     <p class="lead">Standard web component capabilities, declared in HTML.</p>
 
@@ -547,7 +582,7 @@
 <!-- Props -->
 <section id="props">
   <div class="wrap reveal">
-    <div class="section-label">Props</div>
+    <a class="section-label" href="#props">Props</a>
     <h2>Typed attributes</h2>
     <p class="lead">Declare as attributes with optional types. Auto-detect when unspecified.</p>
 
@@ -555,7 +590,7 @@
       <pre style="padding:16px 20px"><span class="p">&lt;</span><span class="k">x-widget</span> <span class="a">count</span><span class="t">:number</span><span class="p">=</span><span class="v">"0"</span> <span class="a">label</span><span class="t">:string</span><span class="p">=</span><span class="v">"Click me"</span> <span class="a">active</span><span class="t">:boolean</span><span class="p">&gt;</span></pre>
     </div>
 
-    <div style="border:1px solid var(--border); border-radius: var(--radius); overflow:hidden">
+    <div style="border:1px solid var(--border); border-radius: var(--radius); overflow:hidden; background: var(--bg2); box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.04), 0 4px 12px oklch(0.25 0.02 250 / 0.03), 0 8px 24px oklch(0.25 0.02 250 / 0.02)">
       <table class="type-table">
         <thead>
           <tr><th>Type</th><th>Coercion</th><th>Default</th></tr>
@@ -576,9 +611,9 @@
 
 
 <!-- Live Demo: Clock -->
-<section>
+<section id="lifecycle">
   <div class="wrap reveal">
-    <div class="section-label">Lifecycle</div>
+    <a class="section-label" href="#lifecycle">Lifecycle</a>
     <h2>Connect, disconnect, react</h2>
     <p class="lead">Script runs once on first connect. Lifecycle hooks handle the rest.</p>
 
@@ -622,48 +657,44 @@
 <!-- Processors -->
 <section id="processors">
   <div class="wrap reveal">
-    <div class="section-label">Processors</div>
+    <a class="section-label" href="#processors">Processors</a>
     <h2>Plug in any template engine</h2>
     <p class="lead">One function. <code>(root, state) =&gt; state</code>. Native web components for your favorite reactive library.</p>
 
-    <div class="code-block" style="margin-bottom: 28px">
-      <div class="code-bar">
-        <span class="code-dot"></span><span class="code-dot"></span><span class="code-dot"></span>
-        <span class="code-title">With sprae — no &lt;script&gt; needed</span>
-      </div>
-      <pre><span class="k">import</span> <span class="n">DefineElement</span> <span class="k">from</span> <span class="v">'define-element'</span>
-<span class="k">import</span> <span class="n">sprae</span> <span class="k">from</span> <span class="v">'sprae'</span>
-
-<span class="n">DefineElement</span><span class="p">.</span><span class="a">processor</span> <span class="p">=</span> <span class="n">sprae</span>
-
-<span class="c">// then in HTML:</span>
-<span class="c">// &lt;x-counter count:number="0"&gt;</span>
-<span class="c">//   &lt;template&gt;</span>
-<span class="c">//     &lt;button :onclick="count++"&gt;</span>
-<span class="c">//       Count: &lt;span :text="count"&gt;&lt;/span&gt;</span>
-<span class="c">//     &lt;/button&gt;</span>
-<span class="c">//   &lt;/template&gt;</span>
-<span class="c">// &lt;/x-counter&gt;</span></pre>
+    <div class="proc-tabs">
+      <span class="proc-tab active" data-proc="sprae">
+        <span style="font-size:16px;line-height:1;opacity:0.7">&#8756;</span>
+        sprae
+      </span>
+      <span class="proc-tab" data-proc="alpine">
+        <svg viewBox="0 0 200 103" width="16" height="14"><polygon fill="#77C1D2" points="149.5 10.3 189.4 50 149.5 89.7 109.6 50"/><polygon fill="#2D3441" points="49.8 10.3 132.5 92.6 52.8 92.6 10 50"/></svg>
+        alpine
+      </span>
+      <span class="proc-tab" data-proc="petite-vue">
+        <svg viewBox="0 0 128 128" width="14" height="14"><path fill="#42b883" d="M78.8,10L64,35.4L49.2,10H0l64,110l64-110H78.8z"/><path fill="#35495e" d="M78.8,10L64,35.4L49.2,10H25.6L64,76l38.4-66H78.8z"/></svg>
+        petite-vue
+      </span>
+      <span class="proc-tab" data-proc="template-parts">
+        <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        template-parts
+      </span>
     </div>
-
-    <div class="processor-grid">
-      <a class="processor-card" href="https://github.com/dy/sprae">sprae <code>(root, state)</code></a>
-      <a class="processor-card" href="https://alpinejs.dev">Alpine.js <code>(root, state)</code></a>
-      <a class="processor-card" href="https://github.com/vuejs/petite-vue">petite-vue <code>(root, state)</code></a>
-      <a class="processor-card" href="https://github.com/github/template-parts">template-parts <code>(root, state)</code></a>
+    <div class="code-block" style="border-top-left-radius:0;border-top:1px solid var(--border)">
+      <pre id="proc-code" style="padding:20px;font-family:var(--mono);font-size:13px;line-height:1.65"></pre>
     </div>
   </div>
 </section>
 
 
 <!-- Why -->
-<section>
+<section id="why">
   <div class="wrap reveal">
-    <div class="section-label">Why</div>
+    <a class="section-label" href="#why">Why</a>
     <h2>The missing piece</h2>
-    <p class="lead" style="max-width: 620px">The W3C Declarative Custom Elements proposal has stalled for years. JS-side solutions require build tools and class boilerplate. The declarative CE space is a graveyard.</p>
+    <p class="lead" style="max-width: 620px">The <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md" style="color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft)">W3C Declarative Custom Elements proposal</a> has stalled for years. JS-side solutions require build tools and class boilerplate. The declarative CE space is a graveyard.</p>
     <p class="lead" style="max-width: 620px">The gap: no lightweight way to define a custom element as HTML. Paste a <code>&lt;define-element&gt;</code> block into any page, CMS, or markdown and it works.</p>
     <p style="font-size:15px; color: var(--fg2); line-height: 1.7; max-width: 620px">This ~300-line polyfill is evidence that the proposal is implementable and useful. Ship it natively.</p>
+    <p style="font-size:13px; margin-top:20px"><a href="https://github.com/dy/define-element#readme" style="color:var(--accent);text-decoration:none">Read the docs &rarr;</a></p>
   </div>
 </section>
 
@@ -671,7 +702,6 @@
 <!-- Footer -->
 <footer>
   <div class="wrap">
-    <div><a href="https://github.com/krishnized/license">Krishnized</a> ISC</div>
     <a class="om" href="https://github.com/krishnized/license">&#x0950;</a>
   </div>
 </footer>
@@ -691,11 +721,11 @@
             font-size: 15px;
             padding: 10px 24px;
             border-radius: 6px;
-            border: 1px solid #d1d5db;
-            background: #f9fafb;
-            color: #1f2937;
+            border: 1px solid oklch(0.88 0.01 250);
+            background: oklch(0.98 0.005 250);
+            color: oklch(0.25 0.02 250);
             cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
+            transition: border-color 0.2s, background 0.2s, transform 0.1s;
           ">Clicks: <span part="n">0</span></button>
         </template>
         <script>
@@ -704,8 +734,10 @@
             this.count++
             this.part.n.textContent = this.count
           }
-          this.part.btn.onmouseenter = () => this.part.btn.style.borderColor = '#4338ca'
-          this.part.btn.onmouseleave = () => this.part.btn.style.borderColor = '#d1d5db'
+          this.part.btn.onmousedown = () => this.part.btn.style.transform = 'scale(0.97)'
+          this.part.btn.onmouseup = () => this.part.btn.style.transform = ''
+          this.part.btn.onmouseenter = () => this.part.btn.style.borderColor = 'oklch(0.59 0.18 255)'
+          this.part.btn.onmouseleave = () => { this.part.btn.style.borderColor = 'oklch(0.88 0.01 250)'; this.part.btn.style.transform = '' }
         <\/script>
       </x-demo-counter>
     </define-element>
@@ -722,7 +754,7 @@
             font-family: 'IBM Plex Mono', monospace;
             font-size: 28px;
             font-weight: 500;
-            color: #1a1a2e;
+            color: oklch(0.25 0.02 250);
             letter-spacing: -0.02em;
           "></time>
         </template>
@@ -737,6 +769,67 @@
     </define-element>
     <x-demo-clock></x-demo-clock>
   `
+
+  // Processor tab switching
+  const procExamples = {
+    sprae: `<span class="k">import</span> <span class="n">DefineElement</span> <span class="k">from</span> <span class="v">'define-element'</span>
+<span class="k">import</span> <span class="n">sprae</span> <span class="k">from</span> <span class="v">'sprae'</span>
+
+<span class="n">DefineElement</span><span class="p">.</span><span class="a">processor</span> <span class="p">=</span> <span class="n">sprae</span>  <span class="c">// matches (root, state) => state</span>
+
+<span class="c">// &lt;x-counter count:number="0"&gt;</span>
+<span class="c">//   &lt;template&gt;</span>
+<span class="c">//     &lt;button :onclick="count++"&gt;Count: &lt;span :text="count"&gt;&lt;/span&gt;&lt;/button&gt;</span>
+<span class="c">//   &lt;/template&gt;</span>
+<span class="c">// &lt;/x-counter&gt;</span>`,
+
+    alpine: `<span class="k">import</span> <span class="n">Alpine</span> <span class="k">from</span> <span class="v">'alpinejs'</span>
+
+<span class="n">DefineElement</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
+  <span class="k">let</span> <span class="n">r</span> <span class="p">=</span> <span class="n">Alpine</span><span class="p">.</span><span class="f">reactive</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+  <span class="n">Alpine</span><span class="p">.</span><span class="f">addScopeToNode</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+  <span class="n">Alpine</span><span class="p">.</span><span class="f">initTree</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">r</span>
+<span class="p">}</span>
+
+<span class="c">// &lt;x-counter count:number="0"&gt;</span>
+<span class="c">//   &lt;template&gt;</span>
+<span class="c">//     &lt;button @click="count++"&gt;Count: &lt;span x-text="count"&gt;&lt;/span&gt;&lt;/button&gt;</span>
+<span class="c">//   &lt;/template&gt;</span>
+<span class="c">// &lt;/x-counter&gt;</span>`,
+
+    'petite-vue': `<span class="k">import</span> <span class="p">{</span> <span class="n">createApp</span><span class="p">,</span> <span class="n">reactive</span> <span class="p">}</span> <span class="k">from</span> <span class="v">'petite-vue'</span>
+
+<span class="n">DefineElement</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) =></span>
+  <span class="p">(</span><span class="f">createApp</span><span class="p">(</span><span class="n">state</span><span class="p">).</span><span class="f">mount</span><span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="f">reactive</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+
+<span class="c">// &lt;x-counter count:number="0"&gt;</span>
+<span class="c">//   &lt;template&gt;</span>
+<span class="c">//     &lt;button @click="count++"&gt;Count: {{ count }}&lt;/button&gt;</span>
+<span class="c">//   &lt;/template&gt;</span>
+<span class="c">// &lt;/x-counter&gt;</span>`,
+
+    'template-parts': `<span class="k">import</span> <span class="p">{</span> <span class="n">TemplateInstance</span> <span class="p">}</span> <span class="k">from</span> <span class="v">'@github/template-parts'</span>
+
+<span class="n">DefineElement</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
+  <span class="n">root</span><span class="p">.</span><span class="f">replaceChildren</span><span class="p">(</span><span class="k">new</span> <span class="f">TemplateInstance</span><span class="p">(</span><span class="n">root</span><span class="p">.</span><span class="a">template</span><span class="p">,</span> <span class="n">state</span><span class="p">))</span>
+  <span class="k">return</span> <span class="n">state</span>
+<span class="p">}</span>
+
+<span class="c">// &lt;x-greeting name:string="world"&gt;</span>
+<span class="c">//   &lt;template&gt;Hello, {{name}}!&lt;/template&gt;</span>
+<span class="c">// &lt;/x-greeting&gt;</span>`
+  }
+
+  const procCode = document.getElementById('proc-code')
+  procCode.innerHTML = procExamples.sprae
+  document.querySelectorAll('.proc-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelector('.proc-tab.active').classList.remove('active')
+      tab.classList.add('active')
+      procCode.innerHTML = procExamples[tab.dataset.proc]
+    }
+  })
 
   // Scroll reveal with stagger
   let delay = 0
