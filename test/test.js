@@ -765,7 +765,7 @@ test('is: extending built-in element', async () => {
       <ul is="x-sortable">
         <template></template>
         <script>
-          this.dataset.base = (this instanceof HTMLUListElement).toString()
+          this.dataset.tag = this.tagName.toLowerCase()
         </script>
       </ul>
     </define-element>
@@ -775,7 +775,7 @@ test('is: extending built-in element', async () => {
   let inst = document.createElement('ul', { is: 'x-sortable' })
   document.body.appendChild(inst)
   ok(inst instanceof HTMLUListElement)
-  is(inst.dataset.base, 'true')
+  is(inst.dataset.tag, 'ul')
   inst.remove()
   el.remove()
 })
@@ -864,7 +864,7 @@ test('processor: dispose via ondisconnected', async () => {
   let disposed = false
   let prev = DefineElement.processor
   DefineElement.processor = (root, state) => {
-    state[Symbol.dispose] = () => { disposed = true }
+    state.dispose = () => { disposed = true }
     return state
   }
 
@@ -873,7 +873,7 @@ test('processor: dispose via ondisconnected', async () => {
       <x-dispose1>
         <template><span>disposable</span></template>
         <script>
-          this.ondisconnected = () => this.state[Symbol.dispose]?.()
+          this.ondisconnected = () => this.state.dispose?.()
         </script>
       </x-dispose1>
     </define-element>
