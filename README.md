@@ -31,6 +31,8 @@ A custom element to define custom elements.
 <script src="https://unpkg.com/define-element"></script>
 ```
 
+or `$ npm i define-element` → `import 'define-element'`
+
 
 ## Definition
 
