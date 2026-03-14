@@ -172,6 +172,15 @@ DefineElement.processor = sprae
 No `<script>` needed — [sprae](https://github.com/dy/sprae) updates the template automatically when state changes. Other engines can be wrapped:
 
 ```js
+// @github/template-parts ({{x}} interpolation, W3C Template Instantiation proposal)
+import { TemplateInstance } from '@github/template-parts'
+DefineElement.processor = (root, state) => {
+  let tpl = document.createElement('template')
+  tpl.innerHTML = root.innerHTML
+  root.replaceChildren(new TemplateInstance(tpl, state))
+  return state
+}
+
 // petite-vue (v-text, v-bind, {{ }})
 import { createApp, reactive } from 'petite-vue'
 DefineElement.processor = (root, state) => (createApp(state).mount(root), reactive(state))
