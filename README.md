@@ -2,9 +2,9 @@
 
 A custom element to define custom elements.
 
-* Native web components for [sprae](https://github.com/dy/sprae), [Alpine](https://alpinejs.dev), [petite-vue](https://github.com/vuejs/petite-vue), [template-parts](https://github.com/nicegist/template-parts) and others
 * Typed props, scoped styles, shadow DOM, slots, lifecycle — one `<script>` tag
-* A reference implementation of the [W3C Declarative Custom Elements proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md)
+* [Declarative Custom Elements](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md) reference implemetation
+* Native web components for [sprae](https://github.com/dy/sprae), [Alpine](https://alpinejs.dev), [petite-vue](https://github.com/vuejs/petite-vue), [template-parts](https://github.com/nicegist/template-parts) and others
 
 
 ```html
