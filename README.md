@@ -27,12 +27,7 @@ A custom element to define custom elements.
 <x-greeting name="Arjuna"></x-greeting>
 ```
 
-```
-npm i define-element
-```
-
 ```html
-<!-- CDN -->
 <script src="https://unpkg.com/define-element"></script>
 ```
 
@@ -220,7 +215,7 @@ The [W3C Declarative Custom Elements proposal](https://github.com/WICG/webcompon
 
 The gap: no lightweight way to define a custom element as HTML — components as content, not as code. Paste a `<define-element>` block into any page, CMS, or markdown file and it works. No npm, no import maps, no build step. One `<script>` tag.
 
-This ~300-line polyfill is evidence that the W3C proposal is implementable and useful. Ship it natively.
+This ~265-line polyfill is evidence that the W3C proposal is implementable and useful. Ship it natively.
 
 
 ## Alternatives
