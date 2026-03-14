@@ -466,6 +466,8 @@
     .demo-panel .code-side { border-right: none; border-bottom: 1px solid var(--border); }
     .features { grid-template-columns: 1fr; }
     .proc-tabs { flex-wrap: wrap; }
+    .proc-tab { font-size: 0; padding: 8px 12px; }
+    .proc-tab svg, .proc-tab img, .proc-tab > span { font-size: 16px; opacity: 0.85; }
     section { padding: 48px 0; }
     section h2 { font-size: 26px; }
     .install-row { flex-direction: column; align-items: center; }
@@ -493,7 +495,7 @@
 <section class="hero">
   <div class="wrap">
     <h1>A custom element to<br><em>define custom elements</em>.</h1>
-    <p class="subtitle">Typed props, scoped styles, shadow DOM, slots, lifecycle. Declarative Custom Elements implementation. Native components for sprae, Alpine, petite-vue, template-parts.</p>
+    <p class="subtitle">Declarative Custom Elements implementation. Typed props, scoped styles, shadow DOM, slots, lifecycle. Native components for sprae, Alpine, petite-vue, template-parts.</p>
 
     <div class="install-row">
       <span class="install-cmd cdn" onclick="navigator.clipboard.writeText('&lt;script src=&quot;https://unpkg.com/define-element&quot;&gt;&lt;/script&gt;');this.classList.add('copied');var t=this.textContent;this.textContent='copied!';setTimeout(()=>{this.textContent=t;this.classList.remove('copied')},1200)" title="Click to copy">&lt;script src="unpkg.com/define-element"&gt;</span>
