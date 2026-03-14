@@ -173,6 +173,7 @@ function define(el) {
     }
 
     attributeChangedCallback(name, oldVal, newVal) {
+      if (this._de_reflecting) return
       let def = propMap[name]
       if (!def) return
 
@@ -197,9 +198,13 @@ function define(el) {
         let val = coerce(v)
         this._de_props[p.name] = val
         if (this._de_init && this.state) this.state[p.name] = val
+        // skip reflection for functions — can't round-trip through attributes
+        if (typeof val === 'function') return
         let s = serialize(val, p.type)
+        this._de_reflecting = true
         if (s == null) this.removeAttribute(p.name)
         else this.setAttribute(p.name, s)
+        this._de_reflecting = false
       },
       enumerable: true,
       configurable: true

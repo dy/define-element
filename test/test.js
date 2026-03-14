@@ -1559,3 +1559,122 @@ test('duplicate registration is safe', async () => {
   el.remove()
   el2.remove()
 })
+
+
+// --- Non-primitive prop reflection ---
+
+test('props: function prop does not reflect to attribute', async () => {
+  let el = h(`
+    <define-element>
+      <x-fn-prop handler:object>
+        <template></template>
+      </x-fn-prop>
+    </define-element>
+  `)
+  await tick()
+
+  let fn = () => 'clicked'
+  let inst = document.createElement('x-fn-prop')
+  document.body.appendChild(inst)
+
+  inst.handler = fn
+
+  // function should be stored correctly as property
+  is(inst.handler, fn)
+  is(typeof inst.handler, 'function')
+  is(inst.handler(), 'clicked')
+
+  // function should NOT be serialized to attribute (lossy)
+  is(inst.getAttribute('handler'), null)
+
+  inst.remove()
+  el.remove()
+})
+
+
+test('props: object with function preserves function via property', async () => {
+  let el = h(`
+    <define-element>
+      <x-obj-prop config:object>
+        <template></template>
+      </x-obj-prop>
+    </define-element>
+  `)
+  await tick()
+
+  let obj = { nested: { deep: true }, fn: () => 42 }
+  let inst = document.createElement('x-obj-prop')
+  document.body.appendChild(inst)
+
+  inst.config = obj
+
+  // property getter returns the original object (with function intact)
+  is(inst.config.nested.deep, true)
+  is(inst.config.fn(), 42)
+
+  // attribute has serialized JSON (functions dropped by JSON.stringify, but property is authoritative)
+  ok(inst.getAttribute('config').includes('deep'))
+
+  inst.remove()
+  el.remove()
+})
+
+
+test('props: primitive props still reflect to attribute', async () => {
+  let el = h(`
+    <define-element>
+      <x-prim-prop name:string="default" count:number="0" active:boolean>
+        <template></template>
+      </x-prim-prop>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-prim-prop')
+  document.body.appendChild(inst)
+
+  // primitives should still reflect
+  inst.name = 'hello'
+  is(inst.getAttribute('name'), 'hello')
+
+  inst.count = 42
+  is(inst.getAttribute('count'), '42')
+
+  inst.active = true
+  is(inst.hasAttribute('active'), true)
+
+  inst.remove()
+  el.remove()
+})
+
+
+test('props: function prop updates state without lossy round-trip', async () => {
+  let prev = DefineElement.processor
+  DefineElement.processor = spraelike
+
+  let el = h(`
+    <define-element>
+      <x-fn-state handler:object label:string="click">
+        <template>
+          <button :onclick="handler" :text="label"></button>
+        </template>
+      </x-fn-state>
+    </define-element>
+  `)
+  await tick()
+
+  let clicked = false
+  let fn = () => { clicked = true }
+
+  let inst = document.createElement('x-fn-state')
+  document.body.appendChild(inst)
+
+  // set function prop — should update state without attribute round-trip
+  inst.handler = fn
+  is(inst.state.handler, fn)
+  is(typeof inst.state.handler, 'function')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
