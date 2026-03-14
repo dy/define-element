@@ -32,7 +32,8 @@ npm i define-element
 ```
 
 ```html
-<script type="module" src="https://unpkg.com/define-element?module"></script>
+<!-- CDN -->
+<script src="https://unpkg.com/define-element"></script>
 ```
 
 
@@ -152,16 +153,15 @@ Add `shadowrootmode` to the template for encapsulation. Slots work natively:
 
 ## Processor
 
-Pluggable template engine. Without a processor, templates are static HTML. Set `DefineElement.processor` to a `(root, state) => state` function — called once per instance after template content is cloned into `root`. Per-definition override via `define(el, processor)`.
+Pluggable template engine. Without a processor, templates are static HTML. Set `.processor` to a `(root, state) => state` function — called once per instance after template content is cloned into `root`.
 
 `root` is the render target — the element itself (light DOM) or its `shadowRoot` (shadow DOM), with template content already cloned in. The original `<template>` element is available as `root.template` for processors that need it.
 
 ```js
-import DefineElement from 'define-element'
 import sprae from 'sprae'
 
 // sprae matches the signature directly — returns a reactive store
-DefineElement.processor = sprae
+customElements.get('define-element').processor = sprae
 ```
 
 ```html
@@ -179,20 +179,22 @@ DefineElement.processor = sprae
 No `<script>` needed — [sprae](https://github.com/dy/sprae) updates the template automatically when state changes. Other processors:
 
 ```js
+let DE = customElements.get('define-element')
+
 // @github/template-parts ({{x}} interpolation, W3C Template Instantiation proposal)
 import { TemplateInstance } from '@github/template-parts'
-DefineElement.processor = (root, state) => {
+DE.processor = (root, state) => {
   root.replaceChildren(new TemplateInstance(root.template, state))
   return state
 }
 
 // petite-vue (v-text, v-bind, {{ }})
 import { createApp, reactive } from 'petite-vue'
-DefineElement.processor = (root, state) => (createApp(state).mount(root), reactive(state))
+DE.processor = (root, state) => (createApp(state).mount(root), reactive(state))
 
 // Alpine.js (x-text, x-bind, @click)
 import Alpine from 'alpinejs'
-DefineElement.processor = (root, state) => {
+DE.processor = (root, state) => {
   let r = Alpine.reactive(state)
   Alpine.addScopeToNode(root, r)
   Alpine.initTree(root)
@@ -201,18 +203,6 @@ DefineElement.processor = (root, state) => {
 ```
 
 Frameworks with their own component models (Lit, Vue, Stencil) are better used directly.
-
-
-## JS API
-
-```js
-import { define } from 'define-element'
-
-let el = document.createElement('x-widget')
-el.setAttribute('count:number', '0')
-el.innerHTML = '<template><span>widget</span></template>'
-define(el)
-```
 
 
 ## Progressive Enhancement

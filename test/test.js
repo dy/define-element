@@ -1,6 +1,7 @@
 import { tick } from 'wait-please'
 import test, { is, ok } from 'tst'
-import DefineElement, { define, types } from '../index.js'
+import '../define-element.js'
+const DefineElement = customElements.get('define-element')
 
 
 // helper: create element, append to body, return it
@@ -525,28 +526,6 @@ test('processor: receives original template element', async () => {
 })
 
 
-test('processor: per-definition overrides global', async () => {
-  let globalCalled = false
-  let perDefCalled = false
-  let prevProcessor = DefineElement.processor
-  DefineElement.processor = (root, state) => { globalCalled = true; return state }
-
-  let el = document.createElement('x-perdef1')
-  el.innerHTML = '<template><b>per-def</b></template>'
-  el.setAttribute('v:string', 'ok')
-  define(el, (root, state) => { perDefCalled = true; return state })
-
-  let inst = document.createElement('x-perdef1')
-  document.body.appendChild(inst)
-  is(globalCalled, false)
-  is(perDefCalled, true)
-  is(inst.innerHTML, '<b>per-def</b>')
-
-  DefineElement.processor = prevProcessor
-  inst.remove()
-})
-
-
 test('shadow: shadowrootmode open', async () => {
   let el = h(`
     <define-element>
@@ -691,34 +670,6 @@ test('style: dedup across instances', async () => {
   inst2.remove()
   styles[0].remove()
   el.remove()
-})
-
-
-test('define: JS API', async () => {
-  let C = define(Object.assign(document.createElement('x-jsapi2'), {
-    innerHTML: '<template><b>js</b></template>'
-  }))
-  ok(C)
-
-  let inst = document.createElement('x-jsapi2')
-  document.body.appendChild(inst)
-  is(inst.innerHTML, '<b>js</b>')
-  inst.remove()
-})
-
-
-test('define: JS API with per-definition processor', async () => {
-  let procState = null
-  let el = document.createElement('x-jsapi-proc')
-  el.innerHTML = '<template><em>hi</em></template>'
-  el.setAttribute('x:number', '10')
-  define(el, (root, state) => { procState = state; return state })
-
-  let inst = document.createElement('x-jsapi-proc')
-  document.body.appendChild(inst)
-  is(inst.innerHTML, '<em>hi</em>')
-  is(procState.x, 10)
-  inst.remove()
 })
 
 
@@ -1581,19 +1532,30 @@ test('script: await in string does not make script async', async () => {
 })
 
 
-test('define: duplicate registration is safe', async () => {
-  let el = document.createElement('x-dup1')
-  el.innerHTML = '<template><b>first</b></template>'
-  define(el)
+test('duplicate registration is safe', async () => {
+  let el = h(`
+    <define-element>
+      <x-dup1>
+        <template><b>first</b></template>
+      </x-dup1>
+    </define-element>
+  `)
+  await tick()
 
-  // second call with same tag should not throw
-  let el2 = document.createElement('x-dup1')
-  el2.innerHTML = '<template><b>second</b></template>'
-  let C = define(el2)
-  ok(C)
+  // second definition with same tag should not throw
+  let el2 = h(`
+    <define-element>
+      <x-dup1>
+        <template><b>second</b></template>
+      </x-dup1>
+    </define-element>
+  `)
+  await tick()
 
   let inst = document.createElement('x-dup1')
   document.body.appendChild(inst)
   is(inst.innerHTML, '<b>first</b>')
   inst.remove()
+  el.remove()
+  el2.remove()
 })

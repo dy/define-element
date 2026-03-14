@@ -1,13 +1,12 @@
 {
   "name": "define-element",
   "version": "1.0.0",
-  "type": "module",
   "description": "A custom element to define custom elements",
-  "main": "index.js",
-  "module": "index.js",
-  "exports": {
-    ".": "./index.js"
-  },
+  "type": "module",
+  "main": "define-element.js",
+  "unpkg": "define-element.js",
+  "files": ["define-element.js"],
+  "sideEffects": true,
   "scripts": {
     "test": "node -r ./test/register.cjs test/test.js"
   },
@@ -16,10 +15,13 @@
     "url": "git+https://github.com/dy/define-element.git"
   },
   "keywords": [
-    "declarative-custom-element",
     "custom-element",
     "web-components",
-    "define-element"
+    "declarative",
+    "html",
+    "no-build",
+    "template",
+    "shadow-dom"
   ],
   "author": "dmitry iv.",
   "license": "ISC",

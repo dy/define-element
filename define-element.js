@@ -32,9 +32,6 @@ const serialize = (v, type) =>
 // Auto-detect type from string value
 const auto = v => v == null ? v : !isNaN(v) && v !== '' ? Number(v) : v === 'true' ? true : v === 'false' ? false : v
 
-// Default global processor
-let processor = null
-
 // Track which light-DOM styles have been injected
 let injectedStyles = new Set()
 
@@ -55,10 +52,8 @@ function parseProps(el) {
 /**
  * Define a custom element from a definition element.
  * @param {Element} el - The definition child (e.g., <x-counter count:number="0">)
- * @param {Function} [proc] - Optional per-definition processor, overrides global
- * @returns {Function} The registered custom element class
  */
-function define(el, proc) {
+function define(el) {
   let tag = el.localName
   let ext = el.getAttribute('is')
 
@@ -83,9 +78,6 @@ function define(el, proc) {
     adoptedSheet = new CSSStyleSheet()
     adoptedSheet.replaceSync(styleText)
   }
-
-  // resolve processor: per-definition > global
-  let proc_ = proc || null
 
   // determine base class
   let Base = ext ? document.createElement(tag).constructor : HTMLElement
@@ -157,7 +149,7 @@ function define(el, proc) {
         }
 
         // run processor (per-definition > global)
-        let p = proc_ || processor
+        let p = DefineElement.processor
         if (p) {
           let result = p(root, state)
           this.state = result || state
@@ -267,12 +259,6 @@ class DefineElement extends HTMLElement {
   }
 }
 
-Object.defineProperty(DefineElement, 'processor', {
-  get: () => processor,
-  set: v => processor = v
-})
+DefineElement.processor = null
 
 customElements.define('define-element', DefineElement)
-
-export default DefineElement
-export { DefineElement, define, types }

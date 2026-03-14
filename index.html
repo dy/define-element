@@ -174,6 +174,7 @@
   .install-cmd:active { transform: scale(0.97); }
   .install-cmd.copied { border-color: var(--accent); color: var(--accent); }
   .install-cmd::before { content: '$ '; color: var(--fg3); }
+  .install-cmd.cdn::before { content: none; }
   .install-cmd.copied::before { content: none; }
 
   /* --- Code blocks --- */
@@ -253,7 +254,7 @@
     text-decoration: none;
     display: inline-block;
   }
-  .section-label:hover { text-decoration: underline; }
+  .section-label:hover { color: var(--accent2); }
   section h2 {
     font-size: 32px;
     font-weight: 600;
@@ -338,6 +339,7 @@
   .feature {
     padding: 20px 1rem 24px 0;
     border-top: 1px solid var(--border);
+    border-top-width: 0.5px;
   }
   .feature h3 {
     font-size: 15px;
@@ -494,7 +496,7 @@
     <p class="subtitle">Components as content, not code. Paste into any page, CMS, or markdown. No class, no build, no framework.</p>
 
     <div class="install-row">
-      <span class="install-cmd" onclick="navigator.clipboard.writeText('npm i define-element');this.classList.add('copied');let t=this.textContent;this.textContent='copied!';setTimeout(()=>{this.textContent=t;this.classList.remove('copied')},1200)" title="Click to copy">npm i define-element</span>
+      <span class="install-cmd cdn" onclick="navigator.clipboard.writeText('&lt;script src=&quot;https://unpkg.com/define-element&quot;&gt;&lt;/script&gt;');this.classList.add('copied');var t=this.textContent;this.textContent='copied!';setTimeout(()=>{this.textContent=t;this.classList.remove('copied')},1200)" title="Click to copy">&lt;script src="unpkg.com/define-element"&gt;</span>
     </div>
 
     <div class="stats">
@@ -724,7 +726,7 @@
 
 <!-- Load define-element and create live demos -->
 <script type="module">
-  import '../index.js'
+  import '../define-element.js'
 
   // Counter demo
   document.getElementById('counter-demo').innerHTML = `
@@ -787,10 +789,9 @@
 
   // Processor tab switching
   const procExamples = {
-    sprae: `<span class="k">import</span> <span class="n">DefineElement</span> <span class="k">from</span> <span class="v">'define-element'</span>
-<span class="k">import</span> <span class="n">sprae</span> <span class="k">from</span> <span class="v">'sprae'</span>
+    sprae: `<span class="k">import</span> <span class="n">sprae</span> <span class="k">from</span> <span class="v">'sprae'</span>
 
-<span class="n">DefineElement</span><span class="p">.</span><span class="a">processor</span> <span class="p">=</span> <span class="n">sprae</span>  <span class="c">// matches (root, state) => state</span>
+<span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">).</span><span class="a">processor</span> <span class="p">=</span> <span class="n">sprae</span>
 
 <span class="c">// &lt;x-counter count:number="0"&gt;</span>
 <span class="c">//   &lt;template&gt;</span>
@@ -799,8 +800,9 @@
 <span class="c">// &lt;/x-counter&gt;</span>`,
 
     alpine: `<span class="k">import</span> <span class="n">Alpine</span> <span class="k">from</span> <span class="v">'alpinejs'</span>
+<span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
-<span class="n">DefineElement</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
+<span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
   <span class="k">let</span> <span class="n">r</span> <span class="p">=</span> <span class="n">Alpine</span><span class="p">.</span><span class="f">reactive</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
   <span class="n">Alpine</span><span class="p">.</span><span class="f">addScopeToNode</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
   <span class="n">Alpine</span><span class="p">.</span><span class="f">initTree</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
@@ -814,8 +816,9 @@
 <span class="c">// &lt;/x-counter&gt;</span>`,
 
     'petite-vue': `<span class="k">import</span> <span class="p">{</span> <span class="n">createApp</span><span class="p">,</span> <span class="n">reactive</span> <span class="p">}</span> <span class="k">from</span> <span class="v">'petite-vue'</span>
+<span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
-<span class="n">DefineElement</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) =></span>
+<span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) =></span>
   <span class="p">(</span><span class="f">createApp</span><span class="p">(</span><span class="n">state</span><span class="p">).</span><span class="f">mount</span><span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="f">reactive</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
 
 <span class="c">// &lt;x-counter count:number="0"&gt;</span>
@@ -825,8 +828,9 @@
 <span class="c">// &lt;/x-counter&gt;</span>`,
 
     'template-parts': `<span class="k">import</span> <span class="p">{</span> <span class="n">TemplateInstance</span> <span class="p">}</span> <span class="k">from</span> <span class="v">'@github/template-parts'</span>
+<span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
-<span class="n">DefineElement</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
+<span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
   <span class="n">root</span><span class="p">.</span><span class="f">replaceChildren</span><span class="p">(</span><span class="k">new</span> <span class="f">TemplateInstance</span><span class="p">(</span><span class="n">root</span><span class="p">.</span><span class="a">template</span><span class="p">,</span> <span class="n">state</span><span class="p">))</span>
   <span class="k">return</span> <span class="n">state</span>
 <span class="p">}</span>
