@@ -28,7 +28,10 @@
   },
   "homepage": "https://github.com/dy/define-element#readme",
   "devDependencies": {
+    "@github/template-parts": "^0.7.1",
+    "alpinejs": "^3.15.8",
     "jsdom": "^28.1.0",
+    "petite-vue": "^0.4.1",
     "tst": "^9.2.2",
     "wait-please": "^3.1.0"
   }

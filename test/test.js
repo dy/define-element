@@ -500,6 +500,31 @@ test('processor: receives correct state', async () => {
 })
 
 
+test('processor: receives original template element', async () => {
+  let capturedTpl = null
+  let prevProcessor = DefineElement.processor
+  DefineElement.processor = (root, state, tpl) => { capturedTpl = tpl; return state }
+
+  let el = h(`
+    <define-element>
+      <x-proc-tpl val:string="ok">
+        <template><em>{{val}}</em></template>
+      </x-proc-tpl>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-proc-tpl')
+  document.body.appendChild(inst)
+  ok(capturedTpl instanceof HTMLTemplateElement)
+  ok(capturedTpl.content.querySelector('em'))
+
+  DefineElement.processor = prevProcessor
+  inst.remove()
+  el.remove()
+})
+
+
 test('processor: per-definition overrides global', async () => {
   let globalCalled = false
   let perDefCalled = false
@@ -781,184 +806,160 @@ test('is: extending built-in element', async () => {
 })
 
 
-// --- Processor contract tests ---
+// --- Processor integration tests ---
+// Each test simulates the core behavior of a real processor to verify the contract.
 
-test('processor: mustache-style text interpolation', async () => {
-  let prev = DefineElement.processor
-  DefineElement.processor = (root, state) => {
-    let walker = document.createTreeWalker(root, 4)
-    let nodes = []
-    while (walker.nextNode()) nodes.push(walker.currentNode)
-    for (let node of nodes) {
-      if (!node.textContent.includes('{{')) continue
-      let tpl = node.textContent
-      node.textContent = tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => state[k] ?? '')
+// Simulate sprae: reactive proxy that binds :text and :onclick directives
+function spraelike(root, state) {
+  let bindings = []
+  root.querySelectorAll('[\\:text]').forEach(el => {
+    let key = el.getAttribute(':text')
+    bindings.push({ el, key, type: 'text' })
+    el.textContent = state[key] ?? ''
+  })
+  root.querySelectorAll('[\\:onclick]').forEach(el => {
+    let expr = el.getAttribute(':onclick')
+    el.onclick = () => Function('state', `with(state){${expr}}`)(proxy)
+  })
+  let proxy = new Proxy(state, {
+    set(t, k, v) {
+      t[k] = v
+      for (let b of bindings) if (b.key === k) b.el.textContent = v
+      return true
     }
-    return state
-  }
+  })
+  return proxy
+}
 
-  let el = h(`
-    <define-element>
-      <x-mustache1 name:string="world">
-        <template><span>hello {{ name }}</span></template>
-      </x-mustache1>
-    </define-element>
-  `)
-  await tick()
-
-  let inst = document.createElement('x-mustache1')
-  document.body.appendChild(inst)
-  is(inst.querySelector('span').textContent, 'hello world')
-
-  DefineElement.processor = prev
-  inst.remove()
-  el.remove()
-})
-
-
-test('processor: reactive proxy (sprae-like)', async () => {
+test('processor[sprae]: initial render + reactivity + prop sync', async () => {
   let prev = DefineElement.processor
-  DefineElement.processor = (root, state) => {
-    let bindings = root.querySelectorAll('[data-bind]')
-    let proxy = new Proxy(state, {
-      set(t, k, v) {
-        t[k] = v
-        bindings.forEach(el => {
-          if (el.dataset.bind === k) el.textContent = v
-        })
-        return true
-      }
-    })
-    bindings.forEach(el => {
-      el.textContent = state[el.dataset.bind] ?? ''
-    })
-    return proxy
-  }
+  DefineElement.processor = spraelike
 
   let el = h(`
     <define-element>
-      <x-reactive1 count:number="0">
-        <template><output data-bind="count"></output></template>
-      </x-reactive1>
-    </define-element>
-  `)
-  await tick()
-
-  let inst = document.createElement('x-reactive1')
-  document.body.appendChild(inst)
-  is(inst.querySelector('output').textContent, '0')
-
-  inst.state.count = 42
-  is(inst.querySelector('output').textContent, '42')
-
-  inst.count = 7
-  is(inst.querySelector('output').textContent, '7')
-
-  DefineElement.processor = prev
-  inst.remove()
-  el.remove()
-})
-
-
-test('processor: dispose via ondisconnected', async () => {
-  let disposed = false
-  let prev = DefineElement.processor
-  DefineElement.processor = (root, state) => {
-    state.dispose = () => { disposed = true }
-    return state
-  }
-
-  let el = h(`
-    <define-element>
-      <x-dispose1>
-        <template><span>disposable</span></template>
-        <script>
-          this.ondisconnected = () => this.state.dispose?.()
-        </script>
-      </x-dispose1>
-    </define-element>
-  `)
-  await tick()
-
-  let inst = document.createElement('x-dispose1')
-  document.body.appendChild(inst)
-  is(disposed, false)
-
-  inst.remove()
-  is(disposed, true)
-
-  DefineElement.processor = prev
-  el.remove()
-})
-
-
-test('processor: vdom-style render function (preact-like)', async () => {
-  let renderCount = 0
-  let prev = DefineElement.processor
-  DefineElement.processor = (root, state) => {
-    const render = () => {
-      renderCount++
-      root.innerHTML = `<div>${state.text || ''}</div>`
-    }
-    render()
-    return state
-  }
-
-  let el = h(`
-    <define-element>
-      <x-vdom1 text:string="hi">
-        <template></template>
-      </x-vdom1>
-    </define-element>
-  `)
-  await tick()
-
-  let inst = document.createElement('x-vdom1')
-  document.body.appendChild(inst)
-  is(inst.querySelector('div').textContent, 'hi')
-  is(renderCount, 1)
-
-  DefineElement.processor = prev
-  inst.remove()
-  el.remove()
-})
-
-
-test('processor: attribute-directive style (alpine-like)', async () => {
-  let prev = DefineElement.processor
-  DefineElement.processor = (root, state) => {
-    root.querySelectorAll('[x-text]').forEach(el => {
-      let key = el.getAttribute('x-text')
-      el.textContent = state[key] ?? ''
-    })
-    root.querySelectorAll('[x-show]').forEach(el => {
-      let key = el.getAttribute('x-show')
-      el.style.display = state[key] ? '' : 'none'
-    })
-    return state
-  }
-
-  let el = h(`
-    <define-element>
-      <x-alpine1 msg:string="hey" visible:boolean>
+      <x-sprae1 count:number="0">
         <template>
-          <span x-text="msg"></span>
-          <div x-show="visible">shown</div>
+          <button :onclick="count++">
+            Count: <span :text="count"></span>
+          </button>
         </template>
-      </x-alpine1>
+      </x-sprae1>
     </define-element>
   `)
   await tick()
 
-  let inst = document.createElement('x-alpine1')
-  inst.setAttribute('visible', '')
+  let inst = document.createElement('x-sprae1')
   document.body.appendChild(inst)
-  is(inst.querySelector('span').textContent, 'hey')
-  is(inst.querySelector('div').style.display, '')
 
-  let inst2 = document.createElement('x-alpine1')
+  // initial render
+  is(inst.querySelector('span').textContent, '0')
+
+  // reactivity: state change → DOM update
+  inst.state.count = 5
+  is(inst.querySelector('span').textContent, '5')
+
+  // prop → state → DOM
+  inst.count = 10
+  is(inst.querySelector('span').textContent, '10')
+  is(inst.getAttribute('count'), '10')
+  is(inst.state.count, 10)
+
+  // attribute → prop → state → DOM
+  inst.setAttribute('count', '20')
+  is(inst.count, 20)
+  is(inst.state.count, 20)
+  is(inst.querySelector('span').textContent, '20')
+
+  // onclick handler modifies reactive state
+  inst.querySelector('button').click()
+  is(inst.state.count, 21)
+  is(inst.querySelector('span').textContent, '21')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
+
+
+test('processor[sprae]: multiple instances share definition, independent state', async () => {
+  let prev = DefineElement.processor
+  DefineElement.processor = spraelike
+
+  let el = h(`
+    <define-element>
+      <x-sprae2 val:number="0">
+        <template><output :text="val"></output></template>
+      </x-sprae2>
+    </define-element>
+  `)
+  await tick()
+
+  let a = document.createElement('x-sprae2')
+  let b = document.createElement('x-sprae2')
+  b.setAttribute('val', '99')
+  document.body.appendChild(a)
+  document.body.appendChild(b)
+
+  is(a.querySelector('output').textContent, '0')
+  is(b.querySelector('output').textContent, '99')
+
+  a.state.val = 1
+  is(a.querySelector('output').textContent, '1')
+  is(b.querySelector('output').textContent, '99') // b unaffected
+
+  DefineElement.processor = prev
+  a.remove()
+  b.remove()
+  el.remove()
+})
+
+
+// Simulate @github/template-parts: TemplateInstance from tpl arg
+// Replaces {{key}} placeholders in template content
+function templatePartsLike(root, state, tpl) {
+  // TemplateInstance clones tpl.content, replaces {{x}} with state values
+  let clone = tpl.content.cloneNode(true)
+  let walker = document.createTreeWalker(clone, 4) // text nodes
+  let nodes = []
+  while (walker.nextNode()) nodes.push(walker.currentNode)
+  for (let node of nodes) {
+    if (!node.textContent.includes('{{')) continue
+    node.textContent = node.textContent.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => state[k] ?? '')
+  }
+  // also handle attribute bindings: attr="{{key}}"
+  clone.querySelectorAll('*').forEach(el => {
+    for (let attr of [...el.attributes]) {
+      if (!attr.value.includes('{{')) continue
+      attr.value = attr.value.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => state[k] ?? '')
+    }
+  })
+  root.replaceChildren(clone)
+  return state
+}
+
+test('processor[template-parts]: tpl arg, {{}} interpolation', async () => {
+  let prev = DefineElement.processor
+  DefineElement.processor = templatePartsLike
+
+  let el = h(`
+    <define-element>
+      <x-tparts1 name:string="world" greeting:string="Hello">
+        <template><p>{{ greeting }}, {{ name }}!</p></template>
+      </x-tparts1>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-tparts1')
+  document.body.appendChild(inst)
+  is(inst.querySelector('p').textContent, 'Hello, world!')
+
+  // instance attributes override defaults
+  let inst2 = document.createElement('x-tparts1')
+  inst2.setAttribute('name', 'Arjuna')
+  inst2.setAttribute('greeting', 'Jai')
   document.body.appendChild(inst2)
-  is(inst2.querySelector('div').style.display, 'none')
+  is(inst2.querySelector('p').textContent, 'Jai, Arjuna!')
 
   DefineElement.processor = prev
   inst.remove()
@@ -966,6 +967,268 @@ test('processor: attribute-directive style (alpine-like)', async () => {
   el.remove()
 })
 
+
+test('processor[template-parts]: tpl is reused across instances', async () => {
+  let tpls = []
+  let prev = DefineElement.processor
+  DefineElement.processor = (root, state, tpl) => {
+    tpls.push(tpl)
+    return templatePartsLike(root, state, tpl)
+  }
+
+  let el = h(`
+    <define-element>
+      <x-tparts2 x:number="0">
+        <template><span>{{ x }}</span></template>
+      </x-tparts2>
+    </define-element>
+  `)
+  await tick()
+
+  let a = document.createElement('x-tparts2')
+  a.setAttribute('x', '1')
+  let b = document.createElement('x-tparts2')
+  b.setAttribute('x', '2')
+  document.body.appendChild(a)
+  document.body.appendChild(b)
+
+  // same template element passed to both
+  is(tpls.length, 2)
+  is(tpls[0], tpls[1])
+
+  // but rendered independently
+  is(a.querySelector('span').textContent, '1')
+  is(b.querySelector('span').textContent, '2')
+
+  DefineElement.processor = prev
+  a.remove()
+  b.remove()
+  el.remove()
+})
+
+
+test('processor[template-parts]: attribute bindings', async () => {
+  let prev = DefineElement.processor
+  DefineElement.processor = templatePartsLike
+
+  let el = h(`
+    <define-element>
+      <x-tparts3 url:string="/api" label:string="link">
+        <template><a href="{{ url }}">{{ label }}</a></template>
+      </x-tparts3>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-tparts3')
+  document.body.appendChild(inst)
+  let a = inst.querySelector('a')
+  is(a.getAttribute('href'), '/api')
+  is(a.textContent, 'link')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
+
+
+// Simulate petite-vue: createApp(state).mount(root), reactive(state)
+// Processes v-text and {{ }} interpolation, returns reactive proxy
+function petiteVueLike(root, state) {
+  let bindings = []
+  // v-text
+  root.querySelectorAll('[v-text]').forEach(el => {
+    let key = el.getAttribute('v-text')
+    bindings.push({ el, key, type: 'text' })
+    el.textContent = state[key] ?? ''
+  })
+  // {{ }} in text nodes
+  let walker = document.createTreeWalker(root, 4)
+  let textNodes = []
+  while (walker.nextNode()) textNodes.push(walker.currentNode)
+  for (let node of textNodes) {
+    if (!node.textContent.includes('{{')) continue
+    let tplStr = node.textContent
+    let matches = [...tplStr.matchAll(/\{\{\s*(\w+)\s*\}\}/g)]
+    if (!matches.length) continue
+    node.textContent = tplStr.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => state[k] ?? '')
+    for (let m of matches) bindings.push({ node, tpl: tplStr, key: m[1], type: 'interpolation' })
+  }
+  let proxy = new Proxy(state, {
+    set(t, k, v) {
+      t[k] = v
+      for (let b of bindings) {
+        if (b.type === 'text' && b.key === k) b.el.textContent = v
+        if (b.type === 'interpolation' && b.key === k) {
+          b.node.textContent = b.tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k2) => t[k2] ?? '')
+        }
+      }
+      return true
+    }
+  })
+  return proxy
+}
+
+test('processor[petite-vue]: v-text + {{ }} + reactivity', async () => {
+  let prev = DefineElement.processor
+  DefineElement.processor = petiteVueLike
+
+  let el = h(`
+    <define-element>
+      <x-pvue1 name:string="world" count:number="0">
+        <template>
+          <h1 v-text="name"></h1>
+          <p>Count: {{ count }}</p>
+        </template>
+      </x-pvue1>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-pvue1')
+  document.body.appendChild(inst)
+
+  // initial render
+  is(inst.querySelector('h1').textContent, 'world')
+  is(inst.querySelector('p').textContent, 'Count: 0')
+
+  // reactivity via state
+  inst.state.name = 'Arjuna'
+  is(inst.querySelector('h1').textContent, 'Arjuna')
+
+  inst.state.count = 5
+  is(inst.querySelector('p').textContent, 'Count: 5')
+
+  // prop change → state → DOM
+  inst.count = 42
+  is(inst.querySelector('p').textContent, 'Count: 42')
+  is(inst.getAttribute('count'), '42')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
+
+
+// Simulate Alpine.js: x-text, x-bind, x-show directives with reactive proxy
+function alpineLike(root, state) {
+  let bindings = []
+  root.querySelectorAll('[x-text]').forEach(el => {
+    let key = el.getAttribute('x-text')
+    bindings.push({ el, key, type: 'text' })
+    el.textContent = state[key] ?? ''
+  })
+  root.querySelectorAll('[x-show]').forEach(el => {
+    let key = el.getAttribute('x-show')
+    bindings.push({ el, key, type: 'show' })
+    el.style.display = state[key] ? '' : 'none'
+  })
+  root.querySelectorAll('*').forEach(el => {
+    let key = el.getAttribute('x-bind:class')
+    if (!key) return
+    bindings.push({ el, key, type: 'class' })
+    if (state[key]) el.className = state[key]
+  })
+  let r = new Proxy(state, {
+    set(t, k, v) {
+      t[k] = v
+      for (let b of bindings) {
+        if (b.key !== k) continue
+        if (b.type === 'text') b.el.textContent = v
+        if (b.type === 'show') b.el.style.display = v ? '' : 'none'
+        if (b.type === 'class') b.el.className = v || ''
+      }
+      return true
+    }
+  })
+  return r
+}
+
+test('processor[alpine]: x-text, x-show, x-bind:class + reactivity', async () => {
+  let prev = DefineElement.processor
+  DefineElement.processor = alpineLike
+
+  let el = h(`
+    <define-element>
+      <x-alp1 msg:string="hello" visible:boolean cls:string="active">
+        <template>
+          <span x-text="msg"></span>
+          <div x-show="visible">content</div>
+          <b x-bind:class="cls"></b>
+        </template>
+      </x-alp1>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-alp1')
+  inst.setAttribute('visible', '')
+  document.body.appendChild(inst)
+
+  // initial
+  is(inst.querySelector('span').textContent, 'hello')
+  is(inst.querySelector('div').style.display, '')
+  is(inst.querySelector('b').className, 'active')
+
+  // reactivity
+  inst.state.msg = 'bye'
+  is(inst.querySelector('span').textContent, 'bye')
+
+  inst.state.visible = false
+  is(inst.querySelector('div').style.display, 'none')
+
+  inst.state.cls = 'disabled'
+  is(inst.querySelector('b').className, 'disabled')
+
+  // prop change flows through
+  inst.msg = 'updated'
+  is(inst.querySelector('span').textContent, 'updated')
+  is(inst.getAttribute('msg'), 'updated')
+
+  // attribute change flows through
+  inst.setAttribute('msg', 'attr-set')
+  is(inst.state.msg, 'attr-set')
+  is(inst.querySelector('span').textContent, 'attr-set')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
+
+
+test('processor[alpine]: hidden by default, show via attribute', async () => {
+  let prev = DefineElement.processor
+  DefineElement.processor = alpineLike
+
+  let el = h(`
+    <define-element>
+      <x-alp2 open:boolean>
+        <template><div x-show="open">panel</div></template>
+      </x-alp2>
+    </define-element>
+  `)
+  await tick()
+
+  // default: hidden
+  let inst = document.createElement('x-alp2')
+  document.body.appendChild(inst)
+  is(inst.querySelector('div').style.display, 'none')
+
+  // show via prop
+  inst.open = true
+  is(inst.querySelector('div').style.display, '')
+
+  // hide via prop
+  inst.open = false
+  is(inst.querySelector('div').style.display, 'none')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
+
+
+// --- Processor contract tests ---
 
 test('processor: no processor — static template', async () => {
   let prev = DefineElement.processor
@@ -1019,6 +1282,242 @@ test('processor: state syncs props ↔ attributes ↔ state', async () => {
   inst.setAttribute('x', '20')
   is(inst.x, 20)
   is(inst.state.x, 20)
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
+
+
+test('processor: dispose via ondisconnected', async () => {
+  let disposed = false
+  let prev = DefineElement.processor
+  DefineElement.processor = (root, state) => {
+    state.dispose = () => { disposed = true }
+    return state
+  }
+
+  let el = h(`
+    <define-element>
+      <x-dispose1>
+        <template><span>disposable</span></template>
+        <script>
+          this.ondisconnected = () => this.state.dispose?.()
+        </script>
+      </x-dispose1>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-dispose1')
+  document.body.appendChild(inst)
+  is(disposed, false)
+
+  inst.remove()
+  is(disposed, true)
+
+  DefineElement.processor = prev
+  el.remove()
+})
+
+
+// --- Real package integration tests ---
+
+test('integration[@github/template-parts]: {{}} interpolation via tpl arg', async () => {
+  let { TemplateInstance } = await import('@github/template-parts')
+  let prev = DefineElement.processor
+  DefineElement.processor = (root, state, tpl) => {
+    root.replaceChildren(new TemplateInstance(tpl, state))
+    return state
+  }
+
+  let el = h(`
+    <define-element>
+      <x-real-tp1 name:string="world" greeting:string="Hello">
+        <template><p>{{greeting}}, {{name}}!</p></template>
+      </x-real-tp1>
+    </define-element>
+  `)
+  await tick()
+
+  // default props
+  let inst = document.createElement('x-real-tp1')
+  document.body.appendChild(inst)
+  is(inst.querySelector('p').textContent, 'Hello, world!')
+
+  // instance attribute override
+  let inst2 = document.createElement('x-real-tp1')
+  inst2.setAttribute('name', 'Arjuna')
+  inst2.setAttribute('greeting', 'Jai')
+  document.body.appendChild(inst2)
+  is(inst2.querySelector('p').textContent, 'Jai, Arjuna!')
+
+  DefineElement.processor = prev
+  inst.remove()
+  inst2.remove()
+  el.remove()
+})
+
+
+test('integration[@github/template-parts]: tpl reused across instances', async () => {
+  let { TemplateInstance } = await import('@github/template-parts')
+  let tpls = []
+  let prev = DefineElement.processor
+  DefineElement.processor = (root, state, tpl) => {
+    tpls.push(tpl)
+    root.replaceChildren(new TemplateInstance(tpl, state))
+    return state
+  }
+
+  let el = h(`
+    <define-element>
+      <x-real-tp2 n:number="0">
+        <template><span>{{n}}</span></template>
+      </x-real-tp2>
+    </define-element>
+  `)
+  await tick()
+
+  let a = document.createElement('x-real-tp2')
+  a.setAttribute('n', '1')
+  let b = document.createElement('x-real-tp2')
+  b.setAttribute('n', '2')
+  document.body.appendChild(a)
+  document.body.appendChild(b)
+
+  is(tpls[0], tpls[1]) // same <template> element
+  is(a.querySelector('span').textContent, '1')
+  is(b.querySelector('span').textContent, '2')
+
+  DefineElement.processor = prev
+  a.remove()
+  b.remove()
+  el.remove()
+})
+
+
+test('integration[petite-vue]: v-text + reactivity', async () => {
+  let { createApp, reactive, nextTick } = await import('petite-vue')
+  let prev = DefineElement.processor
+  DefineElement.processor = (root, state) => {
+    let r = reactive(state)
+    createApp(r).mount(root)
+    return r
+  }
+
+  let el = h(`
+    <define-element>
+      <x-real-pv1 msg:string="hello" count:number="0">
+        <template>
+          <span v-text="msg"></span>
+          <output v-text="count"></output>
+        </template>
+      </x-real-pv1>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-real-pv1')
+  document.body.appendChild(inst)
+
+  // initial render
+  is(inst.querySelector('span').textContent, 'hello')
+  is(inst.querySelector('output').textContent, '0')
+
+  // reactivity: state → DOM
+  inst.state.msg = 'world'
+  await nextTick()
+  is(inst.querySelector('span').textContent, 'world')
+
+  // prop → state → DOM
+  inst.count = 42
+  await nextTick()
+  is(inst.querySelector('output').textContent, '42')
+  is(inst.getAttribute('count'), '42')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})
+
+
+test('integration[petite-vue]: multiple instances independent', async () => {
+  let { createApp, reactive } = await import('petite-vue')
+  let prev = DefineElement.processor
+  DefineElement.processor = (root, state) => {
+    let r = reactive(state)
+    createApp(r).mount(root)
+    return r
+  }
+
+  let el = h(`
+    <define-element>
+      <x-real-pv2 val:number="0">
+        <template><output v-text="val"></output></template>
+      </x-real-pv2>
+    </define-element>
+  `)
+  await tick()
+
+  let a = document.createElement('x-real-pv2')
+  let b = document.createElement('x-real-pv2')
+  b.setAttribute('val', '99')
+  document.body.appendChild(a)
+  document.body.appendChild(b)
+
+  is(a.querySelector('output').textContent, '0')
+  is(b.querySelector('output').textContent, '99')
+
+  a.state.val = 1
+  is(b.querySelector('output').textContent, '99') // b unaffected
+
+  DefineElement.processor = prev
+  a.remove()
+  b.remove()
+  el.remove()
+})
+
+
+test('integration[alpinejs]: x-text + reactivity', async () => {
+  let { default: mod } = await import('alpinejs')
+  let Alpine = mod.Alpine
+  let prev = DefineElement.processor
+  DefineElement.processor = (root, state) => {
+    let r = Alpine.reactive(state)
+    Alpine.addScopeToNode(root, r)
+    Alpine.initTree(root)
+    return r
+  }
+
+  let el = h(`
+    <define-element>
+      <x-real-alp1 msg:string="hello" visible:boolean>
+        <template>
+          <span x-text="msg"></span>
+          <div x-show="visible">content</div>
+        </template>
+      </x-real-alp1>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-real-alp1')
+  inst.setAttribute('visible', '')
+  document.body.appendChild(inst)
+
+  // initial render
+  is(inst.querySelector('span').textContent, 'hello')
+
+  // reactivity: state → DOM
+  inst.state.msg = 'world'
+  await tick()
+  is(inst.querySelector('span').textContent, 'world')
+
+  // prop → state → DOM
+  inst.msg = 'updated'
+  await tick()
+  is(inst.querySelector('span').textContent, 'updated')
+  is(inst.getAttribute('msg'), 'updated')
 
   DefineElement.processor = prev
   inst.remove()

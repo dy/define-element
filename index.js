@@ -1,5 +1,6 @@
 /**
  * <define-element> — a custom element to define custom elements.
+ * Processor signature: (root, state, tpl) => state
  *
  * @example
  * <define-element>
@@ -156,7 +157,7 @@ function define(el, proc) {
         // run processor (per-definition > global)
         let p = proc_ || processor
         if (p) {
-          let result = p(root, state)
+          let result = p(root, state, tpl)
           this.state = result || state
         } else {
           this.state = state

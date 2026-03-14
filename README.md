@@ -1,4 +1,4 @@
-# define-element [![npm](https://img.shields.io/npm/v/define-element?color=tomato)](https://npmjs.org/define-element) [![size](https://img.shields.io/bundlephobia/minzip/define-element?label=size&color=brightgreen)](https://bundlephobia.com/package/define-element) [![ci](https://github.com/dy/define-element/actions/workflows/ci.yml/badge.svg)](https://github.com/dy/define-element/actions/workflows/ci.yml)
+# define-element [![npm](https://img.shields.io/npm/v/define-element?color=tomato)](https://npmjs.org/define-element) [![size](https://img.shields.io/bundlephobia/minzip/define-element?label=size&color=brightgreen)](https://bundlephobia.com/package/define-element) [![ci](https://github.com/dy/define-element/actions/workflows/test.yml/badge.svg)](https://github.com/dy/define-element/actions/workflows/test.yml)
 
 A custom element to define custom elements.
 
@@ -147,7 +147,7 @@ Add `shadowrootmode` to the template for encapsulation. Slots work natively:
 
 ## Processor
 
-Pluggable template engine. Without a processor, templates are static HTML. Set `DefineElement.processor` to a `(root, state) => state` function — called once per instance after template cloning. Per-definition override via `define(el, processor)`.
+Pluggable template engine. Without a processor, templates are static HTML. Set `DefineElement.processor` to a `(root, state, tpl) => state` function — called once per instance after template cloning. `tpl` is the original `<template>` element. Per-definition override via `define(el, processor)`.
 
 ```js
 import DefineElement from 'define-element'
@@ -169,14 +169,12 @@ DefineElement.processor = sprae
 </define-element>
 ```
 
-No `<script>` needed — [sprae](https://github.com/dy/sprae) updates the template automatically when state changes. Other engines can be wrapped:
+No `<script>` needed — [sprae](https://github.com/dy/sprae) updates the template automatically when state changes. Other processors:
 
 ```js
 // @github/template-parts ({{x}} interpolation, W3C Template Instantiation proposal)
 import { TemplateInstance } from '@github/template-parts'
-DefineElement.processor = (root, state) => {
-  let tpl = document.createElement('template')
-  tpl.innerHTML = root.innerHTML
+DefineElement.processor = (root, state, tpl) => {
   root.replaceChildren(new TemplateInstance(tpl, state))
   return state
 }
@@ -185,7 +183,7 @@ DefineElement.processor = (root, state) => {
 import { createApp, reactive } from 'petite-vue'
 DefineElement.processor = (root, state) => (createApp(state).mount(root), reactive(state))
 
-// Alpine.js (x-text, x-bind, @click) — uses undocumented internals
+// Alpine.js (x-text, x-bind, @click)
 import Alpine from 'alpinejs'
 DefineElement.processor = (root, state) => {
   let r = Alpine.reactive(state)
