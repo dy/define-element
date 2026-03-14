@@ -1,11 +1,13 @@
 {
   "name": "define-element",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A custom element to define custom elements",
   "type": "module",
   "main": "define-element.js",
   "unpkg": "define-element.js",
-  "files": ["define-element.js"],
+  "files": [
+    "define-element.js"
+  ],
   "sideEffects": true,
   "scripts": {
     "test": "node -r ./test/register.cjs test/test.js"
