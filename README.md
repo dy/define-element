@@ -112,7 +112,7 @@ Script runs once on first connect. `onconnected` fires after script, including o
 
 ## Style
 
-`<style>` is scoped automatically. With shadow DOM, styles use [adoptedStyleSheets](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/adoptedStyleSheets) (shared across instances). Without shadow DOM, [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope) is used with `:host` rewritten to `:scope`. In browsers without `@scope` support, selectors are prefixed with the element tag as fallback.
+`<style>` is scoped automatically. With shadow DOM, styles use [adoptedStyleSheets](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/adoptedStyleSheets) (shared across instances). Without shadow DOM, styles are scoped via [CSS nesting](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting) under the element tag, and `:host` is rewritten to the tag name.
 
 
 ## Shadow DOM & Slots
