@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A custom element to define custom elements. Components as content, not code. No class, no build, no framework.">
 <title>define-element — A custom element to define custom elements</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
 
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -30,7 +31,7 @@
   body {
     font-family: var(--sans);
     color: var(--fg);
-    background: radial-gradient(ellipse at 50% -200px, oklch(1 0 0 / 0.8), oklch(1 0 0 / 0.3) 300px, transparent 600px) no-repeat, var(--bg);
+    background: radial-gradient(ellipse at 50% -100px, oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.4) 350px, transparent 700px) no-repeat, var(--bg);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
@@ -52,8 +53,8 @@
   /* --- Fade-in on scroll --- */
   .reveal {
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateY(32px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .reveal.visible {
     opacity: 1;
@@ -89,11 +90,14 @@
   nav .links {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 8px;
   }
   nav .links a {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
     color: var(--fg3);
     transition: color 0.2s;
   }
@@ -102,48 +106,50 @@
 
   /* --- Hero --- */
   .hero {
-    padding: 60px 0 80px;
+    padding: 80px 0 96px;
     text-align: center;
   }
   .hero h1 {
-    font-size: 38px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-    margin-bottom: 20px;
+    font-size: 52px;
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 24px;
   }
   .hero h1 em {
     font-style: normal;
+    font-weight: 700;
     color: var(--accent);
   }
   .hero .subtitle {
     font-size: 17px;
     color: var(--fg2);
     max-width: 520px;
-    margin: 0 auto 32px;
+    margin: 0 auto 36px;
     line-height: 1.7;
   }
   .hero .stats {
     display: flex;
-    gap: 32px;
+    gap: 48px;
     justify-content: center;
-    margin-top: 28px;
+    margin-top: 36px;
   }
   .hero .stat {
     text-align: center;
   }
   .hero .stat-val {
-    font-size: 20px;
-    font-weight: 600;
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 500;
     color: var(--fg);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
   .hero .stat-label {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--fg3);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-top: 2px;
+    letter-spacing: 0.08em;
+    margin-top: 4px;
   }
   .install-row {
     display: flex;
@@ -153,21 +159,22 @@
   }
   .install-cmd {
     font-family: var(--mono);
-    font-size: 13px;
-    background: var(--code-bg);
+    font-size: 14px;
+    background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.04), 0 3px 6px oklch(0.25 0.02 250 / 0.03);
-    padding: 10px 18px;
-    color: var(--fg2);
+    box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.05), 0 4px 12px oklch(0.25 0.02 250 / 0.04);
+    padding: 12px 24px;
+    color: var(--fg);
     cursor: pointer;
-    transition: border-color 0.2s, color 0.2s, transform 0.1s;
+    transition: border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
     position: relative;
   }
-  .install-cmd:hover { border-color: var(--accent2); color: var(--fg); }
-  .install-cmd:active { transform: scale(0.98); }
+  .install-cmd:hover { border-color: var(--accent2); box-shadow: 0 2px 4px oklch(0.25 0.02 250 / 0.06), 0 8px 24px oklch(0.25 0.02 250 / 0.06); }
+  .install-cmd:active { transform: scale(0.97); }
   .install-cmd.copied { border-color: var(--accent); color: var(--accent); }
   .install-cmd::before { content: '$ '; color: var(--fg3); }
+  .install-cmd.copied::before { content: none; }
 
   /* --- Code blocks --- */
   .code-block {
@@ -188,11 +195,9 @@
   .code-dot {
     width: 8px; height: 8px;
     border-radius: 50%;
-    opacity: 0.5;
+    background: var(--fg3);
+    opacity: 0.35;
   }
-  .code-dot:nth-child(1) { background: oklch(0.65 0.02 250); }
-  .code-dot:nth-child(2) { background: oklch(0.65 0.02 250); }
-  .code-dot:nth-child(3) { background: oklch(0.65 0.02 250); }
   .code-title {
     font-size: 11px;
     color: var(--fg3);
@@ -224,6 +229,7 @@
     padding: 0;
     border-radius: 0;
     font-size: inherit;
+    white-space: pre;
   }
 
   /* Syntax colors — cool tones */
@@ -237,27 +243,29 @@
 
   /* --- Section headings --- */
   .section-label {
-    font-size: 12px;
-    font-weight: 500;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
     color: var(--accent);
-    margin-bottom: 10px;
-    text-transform: capitalize;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     text-decoration: none;
     display: inline-block;
   }
   .section-label:hover { text-decoration: underline; }
   section h2 {
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     margin-bottom: 12px;
-    line-height: 1.25;
+    line-height: 1.2;
   }
   section .lead {
     font-size: 15px;
     color: var(--fg2);
     max-width: 560px;
-    margin-bottom: 32px;
+    margin-bottom: 36px;
     line-height: 1.7;
   }
 
@@ -303,10 +311,11 @@
     background-position: 10px 10px;
   }
   .result-label {
+    font-family: var(--mono);
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 400;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     color: var(--fg3);
     align-self: flex-start;
   }
@@ -327,14 +336,15 @@
     gap: 0 32px;
   }
   .feature {
-    padding: 20px 1rem 20px 0;
+    padding: 20px 1rem 24px 0;
     border-top: 1px solid var(--border);
   }
   .feature h3 {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     color: var(--fg);
+    letter-spacing: -0.01em;
   }
   .feature p {
     font-size: 13px;
@@ -368,6 +378,7 @@
     cursor: pointer;
     transition: color 0.15s, background 0.15s;
     text-decoration: none;
+    user-select: none;
   }
   .proc-tab:hover { color: var(--fg2); }
   .proc-tab.active {
@@ -402,6 +413,7 @@
     color: var(--fg2);
     transition: background 0.15s;
   }
+  .type-table tbody tr:last-child td { border-bottom: none; }
   .type-table tr:hover td {
     background: var(--accent-soft);
   }
@@ -444,13 +456,16 @@
 
   /* --- Responsive --- */
   @media (max-width: 680px) {
-    .hero h1 { font-size: 28px; }
-    .hero .stats { gap: 20px; }
+    .hero { padding: 48px 0 64px; }
+    .hero h1 { font-size: 32px; }
+    .hero .stat-val { font-size: 20px; }
+    .hero .stats { gap: 28px; }
     .demo-panel { grid-template-columns: 1fr; }
     .demo-panel .code-side { border-right: none; border-bottom: 1px solid var(--border); }
     .features { grid-template-columns: 1fr; }
     .proc-tabs { flex-wrap: wrap; }
     section { padding: 48px 0; }
+    section h2 { font-size: 26px; }
     .install-row { flex-direction: column; align-items: center; }
   }
 </style>
@@ -479,7 +494,7 @@
     <p class="subtitle">Components as content, not code. Paste into any page, CMS, or markdown. No class, no build, no framework.</p>
 
     <div class="install-row">
-      <span class="install-cmd" onclick="navigator.clipboard.writeText('npm i define-element');this.classList.add('copied');this.textContent='copied!';setTimeout(()=>{this.textContent='npm i define-element';this.classList.remove('copied')},1200)" title="Click to copy">npm i define-element</span>
+      <span class="install-cmd" onclick="navigator.clipboard.writeText('npm i define-element');this.classList.add('copied');let t=this.textContent;this.textContent='copied!';setTimeout(()=>{this.textContent=t;this.classList.remove('copied')},1200)" title="Click to copy">npm i define-element</span>
     </div>
 
     <div class="stats">
@@ -668,18 +683,18 @@
       </span>
       <span class="proc-tab" data-proc="alpine">
         <svg viewBox="0 0 200 103" width="16" height="14"><polygon fill="#77C1D2" points="149.5 10.3 189.4 50 149.5 89.7 109.6 50"/><polygon fill="#2D3441" points="49.8 10.3 132.5 92.6 52.8 92.6 10 50"/></svg>
-        alpine
+        Alpine
       </span>
       <span class="proc-tab" data-proc="petite-vue">
         <svg viewBox="0 0 128 128" width="14" height="14"><path fill="#42b883" d="M78.8,10L64,35.4L49.2,10H0l64,110l64-110H78.8z"/><path fill="#35495e" d="M78.8,10L64,35.4L49.2,10H25.6L64,76l38.4-66H78.8z"/></svg>
         petite-vue
       </span>
       <span class="proc-tab" data-proc="template-parts">
-        <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        <svg viewBox="0 0 14 14" width="14" height="14" fill="currentColor"><rect x="1" y="1" width="3" height="12" rx="0.5"/><rect x="5.5" y="3" width="3" height="10" rx="0.5"/><rect x="10" y="5" width="3" height="8" rx="0.5"/></svg>
         template-parts
       </span>
     </div>
-    <div class="code-block" style="border-top-left-radius:0;border-top:1px solid var(--border)">
+    <div class="code-block" style="border-top-left-radius:0">
       <pre id="proc-code" style="padding:20px;font-family:var(--mono);font-size:13px;line-height:1.65"></pre>
     </div>
   </div>
@@ -691,10 +706,10 @@
   <div class="wrap reveal">
     <a class="section-label" href="#why">Why</a>
     <h2>The missing piece</h2>
-    <p class="lead" style="max-width: 620px">The <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md" style="color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft)">W3C Declarative Custom Elements proposal</a> has stalled for years. JS-side solutions require build tools and class boilerplate. The declarative CE space is a graveyard.</p>
+    <p class="lead" style="max-width: 620px">The <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md" style="color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft);transition:border-color 0.2s" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='var(--accent-soft)'">W3C Declarative Custom Elements proposal</a> has stalled for years. JS-side solutions require build tools and class boilerplate. The declarative CE space is a graveyard.</p>
     <p class="lead" style="max-width: 620px">The gap: no lightweight way to define a custom element as HTML. Paste a <code>&lt;define-element&gt;</code> block into any page, CMS, or markdown and it works.</p>
     <p style="font-size:15px; color: var(--fg2); line-height: 1.7; max-width: 620px">This ~300-line polyfill is evidence that the proposal is implementable and useful. Ship it natively.</p>
-    <p style="font-size:13px; margin-top:20px"><a href="https://github.com/dy/define-element#readme" style="color:var(--accent);text-decoration:none">Read the docs &rarr;</a></p>
+    <p style="font-size:13px; margin-top:20px"><a href="https://github.com/dy/define-element#readme" style="color:var(--accent);text-decoration:none;transition:color 0.2s" onmouseenter="this.style.color='var(--accent2)'" onmouseleave="this.style.color='var(--accent)'">Read the docs &rarr;</a></p>
   </div>
 </section>
 
