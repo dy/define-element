@@ -503,7 +503,7 @@ test('processor: receives correct state', async () => {
 test('processor: receives original template element', async () => {
   let capturedTpl = null
   let prevProcessor = DefineElement.processor
-  DefineElement.processor = (root, state, tpl) => { capturedTpl = tpl; return state }
+  DefineElement.processor = (root, state) => { capturedTpl = root.template; return state }
 
   let el = h(`
     <define-element>
@@ -643,7 +643,7 @@ test('shadow: adopted stylesheets shared across instances', async () => {
 })
 
 
-test('style: scoped in light DOM uses @scope', async () => {
+test('style: scoped in light DOM via nesting', async () => {
   let el = h(`
     <define-element>
       <x-light-style>
@@ -659,10 +659,9 @@ test('style: scoped in light DOM uses @scope', async () => {
 
   let style = document.querySelector('style[data-de="x-light-style"]')
   ok(style)
-  ok(style.textContent.includes('@scope'))
   ok(style.textContent.includes('x-light-style'))
   ok(!style.textContent.includes(':host'))
-  ok(style.textContent.includes(':scope'))
+  ok(style.textContent.startsWith('x-light-style {'))
   inst.remove()
   style.remove()
   el.remove()
@@ -916,9 +915,9 @@ test('processor[sprae]: multiple instances share definition, independent state',
 
 // Simulate @github/template-parts: TemplateInstance from tpl arg
 // Replaces {{key}} placeholders in template content
-function templatePartsLike(root, state, tpl) {
-  // TemplateInstance clones tpl.content, replaces {{x}} with state values
-  let clone = tpl.content.cloneNode(true)
+function templatePartsLike(root, state) {
+  // TemplateInstance clones root.template.content, replaces {{x}} with state values
+  let clone = root.template.content.cloneNode(true)
   let walker = document.createTreeWalker(clone, 4) // text nodes
   let nodes = []
   while (walker.nextNode()) nodes.push(walker.currentNode)
@@ -971,9 +970,9 @@ test('processor[template-parts]: tpl arg, {{}} interpolation', async () => {
 test('processor[template-parts]: tpl is reused across instances', async () => {
   let tpls = []
   let prev = DefineElement.processor
-  DefineElement.processor = (root, state, tpl) => {
-    tpls.push(tpl)
-    return templatePartsLike(root, state, tpl)
+  DefineElement.processor = (root, state) => {
+    tpls.push(root.template)
+    return templatePartsLike(root, state)
   }
 
   let el = h(`
@@ -1326,8 +1325,8 @@ test('processor: dispose via ondisconnected', async () => {
 test('integration[@github/template-parts]: {{}} interpolation via tpl arg', async () => {
   let { TemplateInstance } = await import('@github/template-parts')
   let prev = DefineElement.processor
-  DefineElement.processor = (root, state, tpl) => {
-    root.replaceChildren(new TemplateInstance(tpl, state))
+  DefineElement.processor = (root, state) => {
+    root.replaceChildren(new TemplateInstance(root.template, state))
     return state
   }
 
@@ -1363,9 +1362,9 @@ test('integration[@github/template-parts]: tpl reused across instances', async (
   let { TemplateInstance } = await import('@github/template-parts')
   let tpls = []
   let prev = DefineElement.processor
-  DefineElement.processor = (root, state, tpl) => {
-    tpls.push(tpl)
-    root.replaceChildren(new TemplateInstance(tpl, state))
+  DefineElement.processor = (root, state) => {
+    tpls.push(root.template)
+    root.replaceChildren(new TemplateInstance(root.template, state))
     return state
   }
 

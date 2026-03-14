@@ -1,6 +1,6 @@
 /**
  * <define-element> — a custom element to define custom elements.
- * Processor signature: (root, state, tpl) => state
+ * Processor signature: (root, state) => state
  *
  * @example
  * <define-element>
@@ -110,11 +110,10 @@ function define(el, proc) {
 
         let root = this
         if (shadowMode) {
-          this.attachShadow({ mode: shadowMode })
-          root = this.shadowRoot
+          root = this.shadowRoot || this.attachShadow({ mode: shadowMode })
         }
 
-        if (tpl) {
+        if (tpl && !root.firstChild) {
           root.appendChild(tpl.content.cloneNode(true))
         }
 
@@ -146,6 +145,9 @@ function define(el, proc) {
           this.part[p.getAttribute('part')] = p
         )
 
+        // expose original template on root for processors that need it
+        if (tpl) root.template = tpl
+
         // build initial state from prop defaults + current attributes
         let state = {}
         for (let p of propDefs) {
@@ -157,7 +159,7 @@ function define(el, proc) {
         // run processor (per-definition > global)
         let p = proc_ || processor
         if (p) {
-          let result = p(root, state, tpl)
+          let result = p(root, state)
           this.state = result || state
         } else {
           this.state = state
@@ -239,13 +241,10 @@ function runScript(text, thisArg) {
 }
 
 
-/**
- * CSS scoping for light DOM via @scope.
- * :host → :scope, then wraps in @scope (tag) { ... }
- */
+/** CSS scoping for light DOM via CSS nesting. :host → tag. */
 function scopeCSS(css, tag) {
-  css = css.replace(/:host\b(?:\(([^)]*)\))?/g, (_, sel) => sel ? `:scope${sel}` : ':scope')
-  return `@scope (${tag}) { ${css} }`
+  css = css.replace(/:host\b(?:\(([^)]*)\))?/g, (_, sel) => sel ? `${tag}${sel}` : tag)
+  return `${tag} { ${css} }`
 }
 
 

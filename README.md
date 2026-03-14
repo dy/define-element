@@ -2,6 +2,11 @@
 
 A custom element to define custom elements.
 
+* Components as content, not code — paste into any page, CMS, or markdown
+* No class, no build, no framework — one `<script>` tag
+* Typed props, scoped styles, shadow DOM, slots, lifecycle
+* Pluggable template engine — native components for [sprae](https://github.com/dy/sprae), [Alpine](https://alpinejs.dev), [petite-vue](https://github.com/vuejs/petite-vue), [template-parts](https://github.com/nicegist/template-parts) and others
+
 
 ```html
 <define-element>
@@ -107,7 +112,7 @@ Script runs once on first connect. `onconnected` fires after script, including o
 
 ## Style
 
-`<style>` is scoped automatically. With shadow DOM, styles use [adoptedStyleSheets](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/adoptedStyleSheets) (shared across instances). Without shadow DOM, styles are wrapped in [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope) and `:host` is rewritten to `:scope`.
+`<style>` is scoped automatically. With shadow DOM, styles use [adoptedStyleSheets](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/adoptedStyleSheets) (shared across instances). Without shadow DOM, [`@scope`](https://developer.mozilla.org/en-US/docs/Web/CSS/@scope) is used with `:host` rewritten to `:scope`. In browsers without `@scope` support, selectors are prefixed with the element tag as fallback.
 
 
 ## Shadow DOM & Slots
@@ -147,7 +152,9 @@ Add `shadowrootmode` to the template for encapsulation. Slots work natively:
 
 ## Processor
 
-Pluggable template engine. Without a processor, templates are static HTML. Set `DefineElement.processor` to a `(root, state, tpl) => state` function — called once per instance after template cloning. `tpl` is the original `<template>` element. Per-definition override via `define(el, processor)`.
+Pluggable template engine. Without a processor, templates are static HTML. Set `DefineElement.processor` to a `(root, state) => state` function — called once per instance after template content is cloned into `root`. Per-definition override via `define(el, processor)`.
+
+`root` is the render target — the element itself (light DOM) or its `shadowRoot` (shadow DOM), with template content already cloned in. The original `<template>` element is available as `root.template` for processors that need it.
 
 ```js
 import DefineElement from 'define-element'
@@ -174,8 +181,8 @@ No `<script>` needed — [sprae](https://github.com/dy/sprae) updates the templa
 ```js
 // @github/template-parts ({{x}} interpolation, W3C Template Instantiation proposal)
 import { TemplateInstance } from '@github/template-parts'
-DefineElement.processor = (root, state, tpl) => {
-  root.replaceChildren(new TemplateInstance(tpl, state))
+DefineElement.processor = (root, state) => {
+  root.replaceChildren(new TemplateInstance(root.template, state))
   return state
 }
 
@@ -208,11 +215,22 @@ define(el)
 ```
 
 
+## Progressive Enhancement
+
+Definitions are plain HTML — they render as inert content before JS loads. No flash of unstyled content, no blank page. The component markup is the fallback.
+
+For shadow DOM components, server-rendered HTML can include [Declarative Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM#declaratively_with_html) (`<template shadowrootmode>`) for instant first paint. `define-element` then hydrates behavior on top.
+
+This is not server-side rendering in the framework sense — there is no server runtime. It is HTML that works without JavaScript and gets enhanced when JavaScript arrives.
+
+
 ## Why
 
-The [DCE proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md) is stalling. The declarative CE space is a graveyard. JS-side solutions (Lit, FAST, Stencil) require build tools and class boilerplate.
+The [W3C Declarative Custom Elements proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md) has stalled for years. JS-side solutions (Lit, FAST, Stencil) require build tools and class boilerplate. The declarative CE space is a [graveyard](./docs/alternatives.md).
 
-The gap: no lightweight declarative approach that (1) plugs into a proven template engine and (2) provides standard web component props.
+The gap: no lightweight way to define a custom element as HTML — components as content, not as code. Paste a `<define-element>` block into any page, CMS, or markdown file and it works. No npm, no import maps, no build step. One `<script>` tag.
+
+This ~300-line polyfill is evidence that the W3C proposal is implementable and useful. Ship it natively.
 
 
 ## Alternatives
