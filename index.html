@@ -466,8 +466,8 @@
     .demo-panel .code-side { border-right: none; border-bottom: 1px solid var(--border); }
     .features { grid-template-columns: 1fr; }
     .proc-tabs { flex-wrap: wrap; }
-    .proc-tab { font-size: 0; padding: 8px 12px; }
-    .proc-tab svg, .proc-tab img, .proc-tab > span { font-size: 16px; opacity: 0.85; }
+    .proc-tab:not(.active) { font-size: 0; padding: 8px 12px; }
+    .proc-tab:not(.active) svg, .proc-tab:not(.active) img, .proc-tab:not(.active) > span { font-size: 16px; opacity: 0.85; }
     section { padding: 48px 0; }
     section h2 { font-size: 26px; }
     .install-row { flex-direction: column; align-items: center; }
@@ -479,7 +479,7 @@
 <!-- Nav -->
 <nav>
   <div class="wrap">
-    <span class="logo">&lt;define-element&gt; <a href="https://github.com/dy/define-element/releases/tag/v1.0.0">v1</a></span>
+    <span class="logo">&lt;define-element&gt; <a id="ver" href="https://github.com/dy/define-element/releases">v1</a></span>
     <span class="links">
       <a href="https://www.npmjs.com/package/define-element" title="npm">
         <svg viewBox="0 0 16 16"><path d="M0 0v16h16V0H0zm13 13H8V5H5v8H3V3h10v10z"/></svg>
@@ -682,7 +682,7 @@
 
     <div class="proc-tabs">
       <span class="proc-tab active" data-proc="sprae">
-        <span style="font-size:16px;line-height:1;opacity:0.7">&#8756;</span>
+        <span style="font-size:16px;line-height:1;font-weight:700;color:oklch(0.55 0.18 255)">&#8756;</span>
         sprae
       </span>
       <span class="proc-tab" data-proc="alpine">
@@ -694,7 +694,7 @@
         petite-vue
       </span>
       <span class="proc-tab" data-proc="template-parts">
-        <svg viewBox="0 0 14 14" width="14" height="14" fill="currentColor"><rect x="1" y="1" width="3" height="12" rx="0.5"/><rect x="5.5" y="3" width="3" height="10" rx="0.5"/><rect x="10" y="5" width="3" height="8" rx="0.5"/></svg>
+        <img src="https://www.w3.org/favicon.ico" width="14" height="14" alt="W3C">
         template-parts
       </span>
     </div>
@@ -872,6 +872,13 @@
     }
   }, { threshold: 0.1, rootMargin: '40px' })
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
+
+  // Fetch version from npm
+  fetch('https://registry.npmjs.org/define-element/latest').then(r => r.json()).then(d => {
+    let a = document.getElementById('ver')
+    a.textContent = 'v' + d.version
+    a.href = 'https://github.com/dy/define-element/releases/tag/v' + d.version
+  }).catch(() => {})
 </script>
 
 </body>
