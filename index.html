@@ -495,24 +495,32 @@
 <section class="hero">
   <div class="wrap">
     <h1>A custom element to<br><em>define custom elements</em>.</h1>
-    <p class="subtitle">Declarative Custom Elements implementation. Typed props, scoped styles, shadow DOM, slots, lifecycle. Native components for sprae, Alpine, petite-vue, template-parts.</p>
+    <p class="subtitle">
+      Declarative Custom Elements implementation. <br>
+      Typed props, scoped styles, shadow DOM, lifecycle events. <br>
+      Components for alpine, petite-vue, sprae, template-parts etc.
+    </p>
 
     <div class="install-row">
       <span class="install-cmd cdn" onclick="navigator.clipboard.writeText('&lt;script src=&quot;https://unpkg.com/define-element&quot;&gt;&lt;/script&gt;');this.classList.add('copied');var t=this.textContent;this.textContent='copied!';setTimeout(()=>{this.textContent=t;this.classList.remove('copied')},1200)" title="Click to copy">&lt;script src="unpkg.com/define-element"&gt;</span>
     </div>
 
     <div class="stats">
-      <div class="stat">
+      <!-- <div class="stat">
         <div class="stat-val">~1.6KB</div>
-        <div class="stat-label">min + gzip</div>
+        <div class="stat-label">gzip</div>
+      </div> -->
+      <div class="stat">
+        <div class="stat-val">0</div>
+        <div class="stat-label">boilerplate</div>
       </div>
       <div class="stat">
         <div class="stat-val">0</div>
-        <div class="stat-label">dependencies</div>
+        <div class="stat-label">deps</div>
       </div>
       <div class="stat">
-        <div class="stat-val">~270</div>
-        <div class="stat-label">lines</div>
+        <div class="stat-val">0</div>
+        <div class="stat-label">build</div>
       </div>
     </div>
   </div>
@@ -522,9 +530,9 @@
 <!-- Live Demo: Counter -->
 <section id="demo">
   <div class="wrap reveal">
-    <a class="section-label" href="#demo">See It Work</a>
-    <h2>Define once, use anywhere</h2>
-    <p class="lead">Write the component as HTML. Use it as HTML. That's it.</p>
+    <a class="section-label" href="#demo">Intro</a>
+    <h2>Web-components by example</h2>
+    <p class="lead">Define custom elements in HTML. No JS required.<p>
 
     <div class="demo-panel">
       <div class="code-side">
@@ -565,25 +573,25 @@
 <section id="features">
   <div class="wrap reveal">
     <a class="section-label" href="#features">Features</a>
-    <h2>Everything a component needs</h2>
-    <p class="lead">Standard web component capabilities, declared in HTML.</p>
+    <h2>No API</h2>
+    <p class="lead">The API is markup</p>
 
     <div class="features">
       <div class="feature">
-        <h3>Typed Props</h3>
-        <p>Declare with types: <code>count:number="0"</code>. Properties reflect to attributes and back.</p>
+        <h3>Props</h3>
+        <p>Declare with optional types: <code>count:number="0"</code>. Props reflect to attributes and back.</p>
       </div>
       <div class="feature">
-        <h3>Scoped Styles</h3>
-        <p>Shadow DOM uses <code>adoptedStyleSheets</code>. Light DOM scopes via CSS nesting. <code>:host</code> just works.</p>
+        <h3>Styles</h3>
+        <p>Light DOM scopes via CSS nesting, <code>:host</code> works in both. Shadow DOM uses <code>adoptedStyleSheets</code>. </p>
       </div>
       <div class="feature">
         <h3>Shadow DOM & Slots</h3>
-        <p>Add <code>shadowrootmode</code> for encapsulation. Native slots for content projection.</p>
+        <p><code>shadowrootmode</code> for encapsulation with native slots for content projection.</p>
       </div>
       <div class="feature">
         <h3>Parts</h3>
-        <p>Elements with <code>part="name"</code> are collected into <code>this.part</code>. DOM refs without queries.</p>
+        <p>Elements with <code>part="name"</code> are collected into <code>this.part</code> to avoid queries.</p>
       </div>
       <div class="feature">
         <h3>Lifecycle</h3>
@@ -602,8 +610,8 @@
 <section id="props">
   <div class="wrap reveal">
     <a class="section-label" href="#props">Props</a>
-    <h2>Typed attributes</h2>
-    <p class="lead">Declare as attributes with optional types. Auto-detect when unspecified.</p>
+    <h2>Typed props</h2>
+    <p class="lead">Declare attributes with optional types (auto-detected).</p>
 
     <div class="code-block" style="margin-bottom: 28px">
       <pre style="padding:16px 20px"><span class="p">&lt;</span><span class="k">x-widget</span> <span class="a">count</span><span class="t">:number</span><span class="p">=</span><span class="v">"0"</span> <span class="a">label</span><span class="t">:string</span><span class="p">=</span><span class="v">"Click me"</span> <span class="a">active</span><span class="t">:boolean</span><span class="p">&gt;</span></pre>
@@ -633,8 +641,8 @@
 <section id="lifecycle">
   <div class="wrap reveal">
     <a class="section-label" href="#lifecycle">Lifecycle</a>
-    <h2>Connect, disconnect, react</h2>
-    <p class="lead">Script runs once on first connect. Lifecycle hooks handle the rest.</p>
+    <h2>Connect, disconnect, update</h2>
+    <p class="lead">Script runs once on first connect. Hooks fire on connect, disconnect, attribute change.</p>
 
     <div class="demo-panel">
       <div class="code-side">
@@ -676,9 +684,9 @@
 <!-- Processors -->
 <section id="processors">
   <div class="wrap reveal">
-    <a class="section-label" href="#processors">Processors</a>
-    <h2>Plug in any template engine</h2>
-    <p class="lead">One function. <code>(root, state) =&gt; state</code>. Native web components for your favorite reactive library.</p>
+    <a class="section-label" href="#processors">Templating</a>
+    <h2>Template engine</h2>
+    <p class="lead">Works with sprae, Alpine, petite-vue, template-parts.</p>
 
     <div class="proc-tabs">
       <span class="proc-tab active" data-proc="sprae">
@@ -709,7 +717,7 @@
 <section id="why">
   <div class="wrap reveal">
     <a class="section-label" href="#why">Why</a>
-    <h2>The missing piece</h2>
+    <h2>Why this exists</h2>
     <p class="lead" style="max-width: 620px">The <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md" style="color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft);transition:border-color 0.2s" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='var(--accent-soft)'">W3C Declarative Custom Elements proposal</a> has stalled for years. JS-side solutions require build tools and class boilerplate. The declarative CE space is a graveyard.</p>
     <p class="lead" style="max-width: 620px">The gap: no lightweight way to define a custom element as HTML. Paste a <code>&lt;define-element&gt;</code> block into any page, CMS, or markdown and it works.</p>
     <p style="font-size:15px; color: var(--fg2); line-height: 1.7; max-width: 620px">This ~270-line polyfill is evidence that the proposal is implementable and useful. Ship it natively.</p>
