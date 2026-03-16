@@ -275,4 +275,3 @@ DefineElement.processor = null
 
 customElements.define('define-element', DefineElement)
 
-export { DefineElement, define }
