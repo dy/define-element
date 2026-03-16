@@ -141,9 +141,16 @@ function define(el) {
         // run processor or clone template
         let p = DefineElement.processor
         if (p) {
-          // processor owns template mounting — no pre-clone
+          // light DOM: temporarily remove non-prop attrs (parent directives like :each, :x)
+          // so the processor doesn't process them — they belong to the parent scope
+          let saved = !shadowMode ? [...this.attributes].filter(a => !(a.name in propMap)).map(a => [a.name, a.value]) : []
+          for (let [n] of saved) this.removeAttribute(n)
+
           let result = p(root, state)
           this.state = result || state
+
+          // restore parent attrs
+          for (let [n, v] of saved) this.setAttribute(n, v)
         } else {
           if (tpl && !root.firstChild) {
             root.appendChild(tpl.content.cloneNode(true))

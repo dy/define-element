@@ -1691,6 +1691,74 @@ test('props: function prop updates state without lossy round-trip', async () => 
   el.remove()
 })
 
+// Reproduction: real sprae as processor + CE in parent :each
+// The CE's connectedCallback fires during innerHTML parsing.
+// If the processor calls sprae(this, state), sprae processes the CE's own :each/:x attrs — self-destructing.
+test("processor: CE with sprae processor inside parent :each", async () => {
+  let prev = DefineElement.processor
+
+  // Processor that processes root attrs (like real sprae)
+  DefineElement.processor = (root, state) => {
+    clone(root)
+    // Process ALL attrs on root and descendants — this is what sprae(root, state) does
+    let walk = (el) => {
+      for (let attr of [...el.attributes || []]) {
+        if (attr.name.startsWith(':')) {
+          let key = attr.value
+          let dir = attr.name.slice(1)
+          el.removeAttribute(attr.name)
+          if (dir === 'text') el.textContent = state[key] ?? ''
+          else if (dir === 'each') {
+            // :each would replace el with text node — catastrophic if el is the CE itself
+            // This simulates what happens when sprae processes :each on the CE root
+            let holder = document.createTextNode('')
+            el.replaceWith(holder)
+            return // element removed — can't continue
+          }
+        }
+      }
+      for (let child of el.children) walk(child)
+    }
+    walk(root)
+    return state
+  }
+
+  let el = h(`
+    <define-element>
+      <x-in-each label:string="">
+        <template><span :text="label"></span></template>
+      </x-in-each>
+    </define-element>
+  `)
+  await tick()
+
+  // Parent container with :each
+  let container = document.createElement('div')
+  document.body.appendChild(container)
+
+  // Simulate what parent sprae's :each would do:
+  // 1. Clone the CE template
+  // 2. Set attrs for prop binding
+  // 3. Insert clone → connectedCallback fires → processor runs
+  let items = ['Apple', 'Banana']
+  for (let item of items) {
+    let inst = document.createElement('x-in-each')
+    inst.setAttribute(':each', 'x in items')  // parent :each attr (should be ignored by CE)
+    inst.setAttribute(':label', 'x')  // parent prop attr
+    container.appendChild(inst)  // triggers connectedCallback → processor
+  }
+  await tick()
+
+  let ces = container.querySelectorAll('x-in-each')
+  // BUG: if processor processes :each on root, CE replaces itself with text node → 0 CEs
+  is(ces.length, 2, 'CEs should survive — processor should not process root :each')
+
+  DefineElement.processor = prev
+  container.remove()
+  el.remove()
+})
+
+
 test("processor: parent directives don't leak into template (light DOM)", async () => {
   let prev = DefineElement.processor
   // processor that renders :text bindings from cloned template only

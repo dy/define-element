@@ -160,6 +160,8 @@ processor(root, state) => state
 - `state` — `{ propName: value }` from prop defaults + instance attributes
 - Returns reactive state object (stored as `el.state`)
 
+In light DOM, non-prop host attributes (parent directives like `:each`, `v-text`, `x-bind`) are temporarily stripped during processor execution so the processor doesn't process them. Shadow DOM doesn't need this — the ShadowRoot is naturally isolated from host attributes.
+
 ```js
 let DE = customElements.get('define-element')
 
