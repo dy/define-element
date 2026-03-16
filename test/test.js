@@ -1832,3 +1832,102 @@ test("processor: shadow DOM isolates root from host attrs", async () => {
   inst.remove()
   el.remove()
 })
+
+
+test("cloneNode: deep clone doesn't duplicate template children", async () => {
+  let prev = DefineElement.processor
+  DefineElement.processor = (root, state) => { clone(root); return state }
+
+  let el = h(`
+    <define-element>
+      <x-dupe1 label:string="hi">
+        <template><b>hello</b></template>
+      </x-dupe1>
+    </define-element>
+  `)
+  await tick()
+
+  // First instance — connects, processor clones template → <b>
+  let inst1 = document.createElement('x-dupe1')
+  document.body.appendChild(inst1)
+  is(inst1.querySelectorAll('b').length, 1, 'first instance: 1 <b>')
+
+  // Simulate what parent :each does: cloneNode(true) copies inst1 INCLUDING children
+  let inst2 = inst1.cloneNode(true)
+  // inst2 already has <b> from cloneNode. connectedCallback will clone template again.
+  document.body.appendChild(inst2)
+  // BUG: inst2 has 2 <b> — one from cloneNode, one from connectedCallback
+  is(inst2.querySelectorAll('b').length, 1, 'cloned instance: still 1 <b>')
+
+  DefineElement.processor = prev
+  inst1.remove()
+  inst2.remove()
+  el.remove()
+})
+
+
+test("template: dispatchEvent in CE template targets host, not window", async () => {
+  let el = h(`
+    <define-element>
+      <x-evt1>
+        <template><button part="btn">go</button></template>
+        <script>
+          this.part.btn.onclick = () => this.dispatchEvent(new CustomEvent('action', { bubbles: true }))
+        </script>
+      </x-evt1>
+    </define-element>
+  `)
+  await tick()
+
+  let ceEvents = []
+  let inst = document.createElement('x-evt1')
+  document.body.appendChild(inst)
+  inst.addEventListener('action', () => ceEvents.push(1))
+
+  inst.querySelector('button').click()
+  is(ceEvents.length, 1, 'event dispatched on CE host, not window')
+
+  inst.remove()
+  el.remove()
+})
+
+
+test("template: processor scope should provide host reference for dispatchEvent", async () => {
+  let prev = DefineElement.processor
+  // Processor that binds :onclick with access to `host` in scope
+  DefineElement.processor = (root, state) => {
+    clone(root)
+    root.querySelectorAll('[\\:onclick]').forEach(el => {
+      let expr = el.getAttribute(':onclick')
+      el.removeAttribute(':onclick')
+      el.onclick = () => {
+        let host = state.host
+        let CE = host.ownerDocument.defaultView.CustomEvent
+        host.dispatchEvent(new CE('action', { bubbles: true }))
+      }
+    })
+    return state
+  }
+
+  let el = h(`
+    <define-element>
+      <x-evt2>
+        <template><button :onclick="dispatch">go</button></template>
+      </x-evt2>
+    </define-element>
+  `)
+  await tick()
+
+  let ceEvents = []
+  let inst = document.createElement('x-evt2')
+  document.body.appendChild(inst)
+  inst.addEventListener('action', () => ceEvents.push(1))
+
+  inst.querySelector('button').click()
+  // state.host should reference the CE element
+  is(ceEvents.length, 1, 'host ref lets processor dispatch on CE')
+
+  DefineElement.processor = prev
+  inst.remove()
+  el.remove()
+})

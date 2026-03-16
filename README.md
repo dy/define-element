@@ -95,7 +95,8 @@ Properties reflect to attributes and vice versa. Instance attributes override de
 
 | Access | Description |
 |--------|-------------|
-| `this` | The element instance |
+| `this` | The element instance (in `<script>`) |
+| `host` | The element instance (in processor templates) |
 | `this.count` | Prop value |
 | `this.state` | Template state (from processor or plain object) |
 | `this.part.x` | DOM ref via `part="x"` |
@@ -157,7 +158,8 @@ processor(root, state) => state
 
 - `root` — element (light DOM) or shadowRoot (shadow DOM), empty
 - `root.template` — original `<template>` element (shared across instances)
-- `state` — `{ propName: value }` from prop defaults + instance attributes
+- `state` — `{ host, propName: value }` from prop defaults + instance attributes
+  - `host` — the CE element instance (reserved, do not declare as prop)
 - Returns reactive state object (stored as `el.state`)
 
 In light DOM, non-prop host attributes (parent directives like `:each`, `v-text`, `x-bind`) are temporarily stripped during processor execution so the processor doesn't process them. Shadow DOM doesn't need this — the ShadowRoot is naturally isolated from host attributes.

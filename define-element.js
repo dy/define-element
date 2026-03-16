@@ -2,6 +2,9 @@
  * <define-element> — a custom element to define custom elements.
  * Processor signature: (root, state) => state
  *
+ * State includes declared props + `host` (the CE element reference).
+ * Reserved state keys: `host`. Do not declare a prop named `host`.
+ *
  * @example
  * <define-element>
  *   <x-counter count:number="0">
@@ -130,8 +133,11 @@ function define(el) {
         // expose original template for processors
         if (tpl) root.template = tpl
 
+        // clear stale children from cloneNode(true) — processor/template will repopulate
+        if (tpl) root.replaceChildren()
+
         // build initial state from prop defaults + current attributes
-        let state = {}
+        let state = { host: this }
         for (let p of propDefs) {
           let coerce = p.type ? types[p.type] : auto
           let attrVal = this.getAttribute(p.name)
