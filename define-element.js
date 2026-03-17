@@ -263,7 +263,10 @@ function scopeCSS(css, tag) {
  */
 class DefineElement extends HTMLElement {
   connectedCallback() {
-    queueMicrotask(() => this._init())
+    // children present → upgrade/programmatic/module (parsing done) → microtask
+    // children absent → sync script mid-parse (children not yet parsed) → macro-task
+    if (this.childElementCount) queueMicrotask(() => this._init())
+    else setTimeout(() => this._init())
   }
 
   _init() {

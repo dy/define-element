@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<body>
+<script src="../define-element.js"></script>
+<script>
+  // Monkey-patch _init to capture errors
+  const DE = customElements.get('define-element')
+  const origInit = DE.prototype._init
+  DE.prototype._init = function() {
+    window.__initDebug = {
+      childCount: this.children.length,
+      children: [...this.children].map(c => ({ tag: c.localName, attrCount: c.attributes.length, innerHTML: c.innerHTML.slice(0, 50) }))
+    }
+    try {
+      origInit.call(this)
+      window.__initDebug.result = 'ok'
+    } catch(e) {
+      window.__initDebug.error = e.message
+    }
+  }
+</script>
+
+<!-- 1. CE used BEFORE definition (simulates include order in real apps) -->
+<div id="host">
+  <x-late-test></x-late-test>
+</div>
+
+<!-- 2. Definition appears AFTER usage -->
+<define-element>
+  <x-late-test>
+    <template><b>content</b></template>
+  </x-late-test>
+</define-element>
+
+<script>
+  // Debug: manually check what _init sees
+  try {
+    let de = document.querySelector('define-element')
+    if (de) {
+      window.__deDebug = {
+        children: [...de.children].map(c => c.localName),
+        childCount: de.children.length,
+        innerHTML: de.innerHTML.slice(0, 100)
+      }
+    } else {
+      window.__deDebug = { msg: 'define-element already removed (microtask ran)' }
+    }
+  } catch(e) { window.__deDebug = { error: e.message } }
+</script>
+
+<script>
+  // Wait for define-element microtask to register the CE
+  setTimeout(() => {
+    const results = []
+    const assert = (cond, msg) => { results.push(cond ? `PASS: ${msg}` : `FAIL: ${msg}`); if (!cond) console.error('FAIL:', msg) }
+
+    // Check if _init ran
+    const deBlocks = document.querySelectorAll('define-element')
+    assert(deBlocks.length === 0, `define-element removed from DOM (found ${deBlocks.length})`)
+
+    // Check if define-element.js actually loaded
+    assert(!!customElements.get('define-element'), 'DefineElement class registered')
+    results.push('DE-DEBUG: ' + JSON.stringify(window.__deDebug))
+    results.push('INIT-DEBUG: ' + JSON.stringify(window.__initDebug))
+
+    // Check all registered custom elements
+    const allDefined = ['x-late-test', 'define-element'].map(t => `${t}:${!!customElements.get(t)}`).join(', ')
+    assert(!!customElements.get('x-late-test'), `CE class registered (all: ${allDefined})`)
+
+    // 3. Get the original element (was parsed before definition → HTMLUnknownElement initially)
+    const orig = document.querySelector('#host x-late-test')
+    assert(orig.constructor.name !== 'HTMLElement', `original upgraded (got ${orig.constructor.name})`)
+
+    // 4. Remove from DOM (simulates :each taking it as template)
+    orig.remove()
+
+    // 5. Clone the removed element (simulates :each creating instances)
+    const clone = orig.cloneNode(true)
+    document.body.appendChild(clone)
+
+    // Force microtask for connectedCallback
+    queueMicrotask(() => {
+      assert(clone._de_init === true, `clone._de_init=${clone._de_init} (should be true)`)
+      assert(clone.constructor.name !== 'HTMLElement', `clone is proper CE (got ${clone.constructor.name})`)
+      assert(!!clone.querySelector('b'), 'clone has template content')
+      assert(clone.querySelector('b')?.textContent === 'content', `clone content="${clone.querySelector('b')?.textContent}"`)
+
+      // Output results
+      document.title = results.every(r => r.startsWith('PASS')) ? 'ALL PASS' : 'FAIL'
+      document.body.innerHTML = '<pre>' + results.join('\n') + '</pre>'
+    })
+  }, 200)
+</script>
+</body>

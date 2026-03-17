@@ -10,7 +10,8 @@
   ],
   "sideEffects": true,
   "scripts": {
-    "test": "node -r ./test/register.cjs test/test.js"
+    "test": "node -r ./test/register.cjs test/test.js",
+    "test:browser": "node test/browser.js"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
   "homepage": "https://github.com/dy/define-element#readme",
   "devDependencies": {
     "@github/template-parts": "^0.7.1",
+    "@playwright/test": "^1.58.2",
     "alpinejs": "^3.15.8",
     "jsdom": "^28.1.0",
     "petite-vue": "^0.4.1",

@@ -1931,3 +1931,45 @@ test("template: processor scope should provide host reference for dispatchEvent"
   inst.remove()
   el.remove()
 })
+
+
+// Issue: CE used in HTML before <define-element> definition.
+// HTML parsing creates <x-late> as HTMLUnknownElement.
+// Later <define-element> defines it, upgrading DOM instances.
+// But cloneNode(true) on an element removed from DOM before upgrade
+// produces an unupgraded HTMLUnknownElement in real browsers.
+// This is the exact pattern when:
+// 1. <x-row :each="x in items"> appears early in HTML
+// 2. <define-element><x-row ...><template>...</template></x-row></define-element> appears later
+// 3. Framework (:each) removes the original element and clones it for each item
+test('late-defined: CE used before definition, cloned after removal', async () => {
+  // 1. Create element BEFORE definition (simulates HTML parsing order)
+  let wrapper = h(`<div><x-late-clone></x-late-clone></div>`)
+  let orig = wrapper.querySelector('x-late-clone')
+  is(orig.constructor.name, 'HTMLElement', 'before define: plain HTMLElement')
+
+  // 2. Remove from DOM (simulates :each taking it as template)
+  orig.remove()
+
+  // 3. Define the CE (simulates <define-element> appearing later in HTML)
+  h(`<define-element>
+    <x-late-clone>
+      <template><b>content</b></template>
+    </x-late-clone>
+  </define-element>`)
+  await tick()
+
+  ok(customElements.get('x-late-clone'), 'CE class is registered')
+
+  // 4. Clone the removed element (simulates :each creating instances)
+  let clone1 = orig.cloneNode(true)
+  document.body.appendChild(clone1)
+  await tick()
+
+  // Clone must be a proper CE instance — constructor should have run
+  ok(clone1._de_init, 'clone should be initialized by connectedCallback')
+  is(clone1.querySelector('b')?.textContent, 'content', 'clone should have template content')
+
+  wrapper.remove()
+  clone1.remove()
+})

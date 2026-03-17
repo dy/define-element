@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<head>
+  <script type="importmap">{"imports": {
+    "tst": "../node_modules/tst/tst.js",
+    "wait-please": "../node_modules/wait-please/index.js"
+  }}</script>
+</head>
+<body>
+<script src="../define-element.js"></script>
+
+<!-- Test: CE used BEFORE definition (the real-world pattern) -->
+<div id="host"><x-late-browser></x-late-browser></div>
+
+<!-- Definition appears AFTER usage -->
+<define-element>
+  <x-late-browser>
+    <template><b>content</b></template>
+  </x-late-browser>
+</define-element>
+
+<script type="module">
+  import test, { is, ok } from 'tst'
+  import { tick } from 'wait-please'
+
+  // Wait for define-element to register CEs
+  await tick(8)
+
+  test('late-defined CE: class is registered', () => {
+    ok(customElements.get('x-late-browser'), 'x-late-browser should be defined')
+  })
+
+  test('late-defined CE: original element upgraded', () => {
+    let orig = document.querySelector('#host x-late-browser')
+    is(orig?._de_init, true, 'original should have _de_init=true')
+  })
+
+  test('late-defined CE: clone of removed element works', async () => {
+    let orig = document.querySelector('#host x-late-browser')
+    orig.remove()
+
+    let clone = orig.cloneNode(true)
+    document.body.appendChild(clone)
+    await tick(2)
+
+    ok(clone._de_init, 'clone should be initialized')
+    is(clone.querySelector('b')?.textContent, 'content', 'clone should have template content')
+    clone.remove()
+  })
+
+  // Signal completion
+  window.__tst_done = true
+</script>
+</body>
