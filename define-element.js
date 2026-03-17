@@ -20,7 +20,7 @@ const types = {
   number: v => v == null ? 0 : Number(v),
   boolean: v => v != null && v !== 'false' && v !== false,
   date: v => v == null ? null : new Date(v),
-  array: v => v == null ? [] : typeof v === 'string' ? JSON.parse(v) : Array.from(v),
+  array: v => v == null ? [] : typeof v === 'string' ? JSON.parse(v) : v,
   object: v => v == null ? {} : typeof v === 'string' ? JSON.parse(v) : v,
 }
 

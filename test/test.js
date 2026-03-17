@@ -1973,3 +1973,30 @@ test('late-defined: CE used before definition, cloned after removal', async () =
   wrapper.remove()
   clone1.remove()
 })
+
+
+// Array/object prop setters must preserve reactive proxies (not unwrap via Array.from)
+test('prop: array setter preserves proxy/reactive objects', async () => {
+  h(`<define-element>
+    <x-arr-proxy items:array>
+      <template></template>
+    </x-arr-proxy>
+  </define-element>`)
+  await tick()
+
+  let inst = document.createElement('x-arr-proxy')
+  document.body.appendChild(inst)
+  await tick()
+
+  // Proxy simulating reactive array from sprae/signals
+  let raw = ['a', 'b']
+  let proxy = new Proxy(raw, { get: (t, p) => t[p] })
+  inst.items = proxy
+
+  // Setter must pass proxy through to state, not unwrap it
+  is(inst.items, proxy, 'getter returns proxy reference')
+  is(inst.state.items, proxy, 'state receives proxy reference')
+  is(inst.items.length, 2, 'proxy still functional')
+
+  inst.remove()
+})
