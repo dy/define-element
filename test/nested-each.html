@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<head>
+  <script type="importmap">{"imports": {
+    "tst": "../node_modules/tst/tst.js",
+    "wait-please": "../node_modules/wait-please/index.js",
+    "sprae": "../node_modules/sprae/sprae.js"
+  }}</script>
+</head>
+<body>
+
+<script src="../define-element.js"></script>
+
+<define-element>
+  <nested-each-test years:array>
+    <template>
+      <div :each="yr in years" class="yr">
+        <span :text="yr.key"></span>
+        <div :each="g in yr.items" class="month" :text="g.key"></div>
+      </div>
+    </template>
+  </nested-each-test>
+</define-element>
+
+<nested-each-test :years="data"></nested-each-test>
+
+<script type="module">
+  import test, { is, ok } from 'tst'
+  import { tick } from 'wait-please'
+  import sprae, { start } from 'sprae'
+
+  // Set processor
+  customElements.get('define-element').processor = (root, state) => {
+    if (root.template) root.appendChild(root.template.content.cloneNode(true))
+    return sprae(root, state)
+  }
+  // Register CE
+  document.querySelectorAll('define-element').forEach(el => el._init?.())
+
+  let s = start(document.body, { data: [] })
+
+  // Async data load
+  s.data = [{ key: '2026', items: [{ key: 'March' }, { key: 'Feb' }] }]
+
+  await tick(8)
+
+  test('nested :each in CE renders year groups', () => {
+    is(document.querySelectorAll('.yr').length, 1, 'one year group')
+  })
+
+  test('nested :each in CE renders month items', () => {
+    is(document.querySelectorAll('.month').length, 2, 'two months')
+    is(document.querySelectorAll('.month')[0].textContent, 'March')
+    is(document.querySelectorAll('.month')[1].textContent, 'Feb')
+  })
+
+  window.__tst_done = true
+</script>
+</body>

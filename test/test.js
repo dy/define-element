@@ -221,17 +221,17 @@ test('props: instance attribute overrides default', async () => {
 })
 
 
-test('parts: this.part access', async () => {
+test('script: querySelector for element refs', async () => {
   let el = h(`
     <define-element>
       <x-parts1>
         <template>
-          <span part="label">text</span>
-          <button part="btn">click</button>
+          <span id="label">text</span>
+          <button id="btn">click</button>
         </template>
         <script>
-          this.dataset.labelText = this.part.label.textContent
-          this.dataset.btnText = this.part.btn.textContent
+          this.dataset.labelText = this.querySelector('#label').textContent
+          this.dataset.btnText = this.querySelector('#btn').textContent
         </script>
       </x-parts1>
     </define-element>
@@ -572,17 +572,17 @@ test('shadow: style in shadow DOM', async () => {
 })
 
 
-test('shadow: parts in shadow DOM', async () => {
+test('shadow: element refs in shadow DOM', async () => {
   let el = h(`
     <define-element>
       <x-shadow-parts>
         <template shadowrootmode="open">
-          <span part="label">shadow-text</span>
-          <button part="btn">shadow-btn</button>
+          <span id="label">shadow-text</span>
+          <button id="btn">shadow-btn</button>
         </template>
         <script>
-          this.dataset.label = this.part.label.textContent
-          this.dataset.btn = this.part.btn.textContent
+          this.dataset.label = this.shadowRoot.querySelector('#label').textContent
+          this.dataset.btn = this.shadowRoot.querySelector('#btn').textContent
         </script>
       </x-shadow-parts>
     </define-element>
@@ -593,8 +593,8 @@ test('shadow: parts in shadow DOM', async () => {
   document.body.appendChild(inst)
   is(inst.dataset.label, 'shadow-text')
   is(inst.dataset.btn, 'shadow-btn')
-  ok(inst.shadowRoot.querySelector('[part="label"]'))
-  is(inst.querySelector('[part="label"]'), null)
+  ok(inst.shadowRoot.querySelector('#label'))
+  is(inst.querySelector('#label'), null)
   inst.remove()
   el.remove()
 })
@@ -1870,9 +1870,9 @@ test("template: dispatchEvent in CE template targets host, not window", async ()
   let el = h(`
     <define-element>
       <x-evt1>
-        <template><button part="btn">go</button></template>
+        <template><button id="btn">go</button></template>
         <script>
-          this.part.btn.onclick = () => this.dispatchEvent(new CustomEvent('action', { bubbles: true }))
+          this.querySelector('#btn').onclick = () => this.dispatchEvent(new CustomEvent('action', { bubbles: true }))
         </script>
       </x-evt1>
     </define-element>

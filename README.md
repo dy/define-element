@@ -11,10 +11,10 @@ A custom element to define custom elements.
 <define-element>
   <x-greeting name:string="world">
     <template>
-      <p part="msg"></p>
+      <p id="msg"></p>
     </template>
     <script>
-      const update = () => this.part.msg.textContent = `Hello, ${this.name}!`
+      const update = () => this.querySelector('#msg').textContent = `Hello, ${this.name}!`
       update()
       this.onattributechanged = update
     </script>
@@ -71,19 +71,19 @@ Declared as attributes with optional types:
 Properties reflect to attributes and vice versa. Instance attributes override definition defaults.
 
 
-## Template, Parts & Script
+## Template & Script
 
-`<template>` is cloned into each instance on first connect. Elements with `part` are collected into `this.part`. `<script>` runs once per instance with `this` as the element, via script injection (no `eval`).
+`<template>` is cloned into each instance on first connect. `<script>` runs once per instance with `this` as the element, via script injection (no `eval`). Use standard `querySelector` for element refs.
 
 ```html
 <define-element>
   <x-clock>
     <template>
-      <time part="display"></time>
+      <time id="display"></time>
     </template>
     <script>
-      let id
-      const tick = () => this.part.display.textContent = new Date().toLocaleTimeString()
+      let id, display = this.querySelector('#display')
+      const tick = () => display.textContent = new Date().toLocaleTimeString()
       tick()
       this.onconnected = () => id = setInterval(tick, 1000)
       this.ondisconnected = () => clearInterval(id)
@@ -99,7 +99,6 @@ Properties reflect to attributes and vice versa. Instance attributes override de
 | `host` | The element instance (in processor templates) |
 | `this.count` | Prop value |
 | `this.state` | Template state (from processor or plain object) |
-| `this.part.x` | DOM ref via `part="x"` |
 | `this.onconnected` | Connected callback |
 | `this.ondisconnected` | Disconnected callback |
 | `this.onadopted` | Adopted callback |
@@ -121,15 +120,16 @@ Add `shadowrootmode` to the template for encapsulation. Slots work natively:
 <define-element>
   <x-dialog open:boolean>
     <template shadowrootmode="open">
-      <dialog part="dialog">
+      <dialog id="dialog">
         <header><slot name="title">Notice</slot></header>
         <slot></slot>
-        <footer><button part="close">Close</button></footer>
+        <footer><button id="close">Close</button></footer>
       </dialog>
     </template>
     <script>
-      const sync = () => this.open ? this.part.dialog.showModal() : this.part.dialog.close()
-      this.part.close.onclick = () => this.open = false
+      let dlg = this.shadowRoot.querySelector('#dialog'), close = this.shadowRoot.querySelector('#close')
+      const sync = () => this.open ? dlg.showModal() : dlg.close()
+      close.onclick = () => this.open = false
       this.onattributechanged = sync
       sync()
     </script>

@@ -743,7 +743,7 @@
     <define-element>
       <x-demo-counter count:number="0">
         <template>
-          <button part="btn" style="
+          <button id="btn" style="
             font-family: 'IBM Plex Mono', monospace;
             font-size: 15px;
             padding: 10px 24px;
@@ -753,18 +753,16 @@
             color: oklch(0.25 0.02 250);
             cursor: pointer;
             transition: border-color 0.2s, background 0.2s, transform 0.1s;
-          ">Clicks: <span part="n">0</span></button>
+          ">Clicks: <span id="n">0</span></button>
         </template>
         <script>
-          this.part.n.textContent = this.count
-          this.part.btn.onclick = () => {
-            this.count++
-            this.part.n.textContent = this.count
-          }
-          this.part.btn.onmousedown = () => this.part.btn.style.transform = 'scale(0.97)'
-          this.part.btn.onmouseup = () => this.part.btn.style.transform = ''
-          this.part.btn.onmouseenter = () => this.part.btn.style.borderColor = 'oklch(0.59 0.18 255)'
-          this.part.btn.onmouseleave = () => { this.part.btn.style.borderColor = 'oklch(0.88 0.01 250)'; this.part.btn.style.transform = '' }
+          let btn = this.querySelector('#btn'), n = this.querySelector('#n')
+          n.textContent = this.count
+          btn.onclick = () => { this.count++; n.textContent = this.count }
+          btn.onmousedown = () => btn.style.transform = 'scale(0.97)'
+          btn.onmouseup = () => btn.style.transform = ''
+          btn.onmouseenter = () => btn.style.borderColor = 'oklch(0.59 0.18 255)'
+          btn.onmouseleave = () => { btn.style.borderColor = 'oklch(0.88 0.01 250)'; btn.style.transform = '' }
         <\/script>
       </x-demo-counter>
     </define-element>
@@ -777,7 +775,7 @@
     <define-element>
       <x-demo-clock>
         <template>
-          <time part="t" style="
+          <time id="t" style="
             font-family: 'IBM Plex Mono', monospace;
             font-size: 28px;
             font-weight: 500;
@@ -786,8 +784,8 @@
           "></time>
         </template>
         <script>
-          let id
-          const tick = () => this.part.t.textContent = new Date().toLocaleTimeString()
+          let id, t = this.querySelector('#t')
+          const tick = () => t.textContent = new Date().toLocaleTimeString()
           tick()
           this.onconnected = () => id = setInterval(tick, 1000)
           this.ondisconnected = () => clearInterval(id)
