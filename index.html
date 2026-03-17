@@ -543,14 +543,15 @@
         <pre><span class="p">&lt;</span><span class="k">define-element</span><span class="p">&gt;</span>
   <span class="p">&lt;</span><span class="k">x-counter</span> <span class="a">count</span><span class="t">:number</span><span class="p">=</span><span class="v">"0"</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="k">template</span><span class="p">&gt;</span>
-      <span class="p">&lt;</span><span class="k">button</span> <span class="a">part</span><span class="p">=</span><span class="v">"btn"</span><span class="p">&gt;</span>
-        Clicks: <span class="p">&lt;</span><span class="k">span</span> <span class="a">part</span><span class="p">=</span><span class="v">"n"</span><span class="p">&gt;</span>0<span class="p">&lt;/</span><span class="k">span</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="k">button</span> <span class="a">id</span><span class="p">=</span><span class="v">"btn"</span><span class="p">&gt;</span>
+        Clicks: <span class="p">&lt;</span><span class="k">span</span> <span class="a">id</span><span class="p">=</span><span class="v">"n"</span><span class="p">&gt;</span>0<span class="p">&lt;/</span><span class="k">span</span><span class="p">&gt;</span>
       <span class="p">&lt;/</span><span class="k">button</span><span class="p">&gt;</span>
     <span class="p">&lt;/</span><span class="k">template</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="k">script</span><span class="p">&gt;</span>
-      <span class="n">this</span><span class="p">.</span><span class="n">part</span><span class="p">.</span><span class="n">btn</span><span class="p">.</span><span class="f">onclick</span> <span class="p">= () =&gt; {</span>
+      <span class="k">let</span> <span class="n">btn</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#btn'</span><span class="p">),</span> <span class="n">n</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#n'</span><span class="p">)</span>
+      <span class="n">btn</span><span class="p">.</span><span class="f">onclick</span> <span class="p">= () =&gt; {</span>
         <span class="n">this</span><span class="p">.</span><span class="n">count</span><span class="p">++</span>
-        <span class="n">this</span><span class="p">.</span><span class="n">part</span><span class="p">.</span><span class="n">n</span><span class="p">.</span><span class="n">textContent</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="n">count</span>
+        <span class="n">n</span><span class="p">.</span><span class="n">textContent</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="n">count</span>
       <span class="p">}</span>
     <span class="p">&lt;/</span><span class="k">script</span><span class="p">&gt;</span>
   <span class="p">&lt;/</span><span class="k">x-counter</span><span class="p">&gt;</span>
@@ -590,8 +591,8 @@
         <p><code>shadowrootmode</code> for encapsulation with native slots for content projection.</p>
       </div>
       <div class="feature">
-        <h3>Parts</h3>
-        <p>Elements with <code>part="name"</code> are collected into <code>this.part</code> to avoid queries.</p>
+        <h3>Standard DOM</h3>
+        <p>Use <code>id</code> and <code>querySelector</code> for element refs. No custom abstractions.</p>
       </div>
       <div class="feature">
         <h3>Lifecycle</h3>
@@ -653,12 +654,12 @@
         <pre><span class="p">&lt;</span><span class="k">define-element</span><span class="p">&gt;</span>
   <span class="p">&lt;</span><span class="k">x-clock</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="k">template</span><span class="p">&gt;</span>
-      <span class="p">&lt;</span><span class="k">time</span> <span class="a">part</span><span class="p">=</span><span class="v">"t"</span><span class="p">&gt;&lt;/</span><span class="k">time</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="k">time</span> <span class="a">id</span><span class="p">=</span><span class="v">"t"</span><span class="p">&gt;&lt;/</span><span class="k">time</span><span class="p">&gt;</span>
     <span class="p">&lt;/</span><span class="k">template</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="k">script</span><span class="p">&gt;</span>
-      <span class="k">let</span> <span class="n">id</span>
+      <span class="k">let</span> <span class="n">id</span><span class="p">,</span> <span class="n">t</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#t'</span><span class="p">)</span>
       <span class="k">const</span> <span class="f">tick</span> <span class="p">= () =&gt;</span>
-        <span class="n">this</span><span class="p">.</span><span class="n">part</span><span class="p">.</span><span class="n">t</span><span class="p">.</span><span class="n">textContent</span> <span class="p">=</span>
+        <span class="n">t</span><span class="p">.</span><span class="n">textContent</span> <span class="p">=</span>
           <span class="k">new</span> <span class="f">Date</span><span class="p">().</span><span class="f">toLocaleTimeString</span><span class="p">()</span>
       <span class="f">tick</span><span class="p">()</span>
       <span class="n">this</span><span class="p">.</span><span class="a">onconnected</span> <span class="p">= () =&gt;</span>
