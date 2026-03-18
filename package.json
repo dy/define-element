@@ -10,7 +10,7 @@
   ],
   "sideEffects": true,
   "scripts": {
-    "test": "node -r ./test/register.cjs test/test.js && node test/browser.js",
+    "test": "node -r ./test/register.cjs test/test.js",
     "test:browser": "node test/browser.js"
   },
   "repository": {
