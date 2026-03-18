@@ -277,8 +277,8 @@ test('script: access to props and state', async () => {
         <template></template>
         <script>
           this.dataset.greeting = this.greeting
-          this.state.extra = 'local'
-          this.dataset.extra = this.state.extra
+          let extra = 'local'
+          this.dataset.extra = extra
         </script>
       </x-script2>
     </define-element>
@@ -368,14 +368,14 @@ test('lifecycle: disconnected event', async () => {
 })
 
 
-test('lifecycle: attributechanged event', async () => {
+test('lifecycle: propchange event', async () => {
   let el = h(`
     <define-element>
       <x-life3 val:number="0">
         <template></template>
         <script>
           this._changes = []
-          this.onattributechanged = e => this._changes.push({ name: e.attributeName, val: e.newValue })
+          this.onpropchange = (name, val) => this._changes.push({ name, val })
         </script>
       </x-life3>
     </define-element>
@@ -387,7 +387,7 @@ test('lifecycle: attributechanged event', async () => {
   inst.setAttribute('val', '5')
   is(inst._changes.length, 1)
   is(inst._changes[0].name, 'val')
-  is(inst._changes[0].val, '5')
+  is(inst._changes[0].val, 5)
   inst.remove()
   el.remove()
 })
@@ -442,7 +442,6 @@ test('lifecycle: reparenting preserves state', async () => {
   document.body.appendChild(div)
   div.appendChild(inst) // disconnect + reconnect
   is(inst.count, 5)
-  is(inst.state.count, 5)
 
   div.remove()
   el.remove()
@@ -732,7 +731,8 @@ test('props: object type', async () => {
   is(inst.data.a, 1)
 
   inst.data = { b: 2 }
-  is(JSON.parse(inst.getAttribute('data')).b, 2)
+  is(inst.data.b, 2)
+  is(inst.getAttribute('data'), null, 'object props do not reflect to attributes')
   inst.remove()
   el.remove()
 })
@@ -776,13 +776,17 @@ function spraelike(root, state) {
     let expr = el.getAttribute(':onclick')
     el.onclick = () => Function('state', `with(state){${expr}}`)(proxy)
   })
+  let syncing = false
   let proxy = new Proxy(state, {
     set(t, k, v) {
       t[k] = v
       for (let b of bindings) if (b.key === k) b.el.textContent = v
+      // sync back to element prop (e.g. after onclick mutates proxy directly)
+      if (!syncing && k in state.host) { syncing = true; state.host[k] = v; syncing = false }
       return true
     }
   })
+  state.host.onpropchange = (k, v) => { if (!syncing) { syncing = true; proxy[k] = v; syncing = false } }
   return proxy
 }
 
@@ -809,25 +813,24 @@ test('processor[sprae]: initial render + reactivity + prop sync', async () => {
   // initial render
   is(inst.querySelector('span').textContent, '0')
 
-  // reactivity: state change → DOM update
-  inst.state.count = 5
+  // reactivity: prop change → DOM update
+  inst.count = 5
   is(inst.querySelector('span').textContent, '5')
 
   // prop → state → DOM
   inst.count = 10
   is(inst.querySelector('span').textContent, '10')
   is(inst.getAttribute('count'), '10')
-  is(inst.state.count, 10)
+  is(inst.count, 10)
 
   // attribute → prop → state → DOM
   inst.setAttribute('count', '20')
   is(inst.count, 20)
-  is(inst.state.count, 20)
   is(inst.querySelector('span').textContent, '20')
 
   // onclick handler modifies reactive state
   inst.querySelector('button').click()
-  is(inst.state.count, 21)
+  is(inst.count, 21)
   is(inst.querySelector('span').textContent, '21')
 
   DefineElement.processor = prev
@@ -858,7 +861,7 @@ test('processor[sprae]: multiple instances share definition, independent state',
   is(a.querySelector('output').textContent, '0')
   is(b.querySelector('output').textContent, '99')
 
-  a.state.val = 1
+  a.val = 1
   is(a.querySelector('output').textContent, '1')
   is(b.querySelector('output').textContent, '99') // b unaffected
 
@@ -1022,6 +1025,7 @@ function petiteVueLike(root, state) {
       return true
     }
   })
+  state.host.onpropchange = (k, v) => { proxy[k] = v }
   return proxy
 }
 
@@ -1048,11 +1052,11 @@ test('processor[petite-vue]: v-text + {{ }} + reactivity', async () => {
   is(inst.querySelector('h1').textContent, 'world')
   is(inst.querySelector('p').textContent, 'Count: 0')
 
-  // reactivity via state
-  inst.state.name = 'Arjuna'
+  // reactivity via prop
+  inst.name = 'Arjuna'
   is(inst.querySelector('h1').textContent, 'Arjuna')
 
-  inst.state.count = 5
+  inst.count = 5
   is(inst.querySelector('p').textContent, 'Count: 5')
 
   // prop change → state → DOM
@@ -1098,6 +1102,7 @@ function alpineLike(root, state) {
       return true
     }
   })
+  state.host.onpropchange = (k, v) => { r[k] = v }
   return r
 }
 
@@ -1128,13 +1133,13 @@ test('processor[alpine]: x-text, x-show, x-bind:class + reactivity', async () =>
   is(inst.querySelector('b').className, 'active')
 
   // reactivity
-  inst.state.msg = 'bye'
+  inst.msg = 'bye'
   is(inst.querySelector('span').textContent, 'bye')
 
-  inst.state.visible = false
+  inst.visible = false
   is(inst.querySelector('div').style.display, 'none')
 
-  inst.state.cls = 'disabled'
+  inst.cls = 'disabled'
   is(inst.querySelector('b').className, 'disabled')
 
   // prop change flows through
@@ -1144,7 +1149,7 @@ test('processor[alpine]: x-text, x-show, x-bind:class + reactivity', async () =>
 
   // attribute change flows through
   inst.setAttribute('msg', 'attr-set')
-  is(inst.state.msg, 'attr-set')
+  is(inst.msg, 'attr-set')
   is(inst.querySelector('span').textContent, 'attr-set')
 
   DefineElement.processor = prev
@@ -1203,7 +1208,6 @@ test('processor: no processor — static template', async () => {
   let inst = document.createElement('x-static1')
   document.body.appendChild(inst)
   is(inst.innerHTML, '<b>static</b>')
-  is(inst.state.val, 5)
   is(inst.val, 5)
 
   DefineElement.processor = prev
@@ -1212,7 +1216,7 @@ test('processor: no processor — static template', async () => {
 })
 
 
-test('processor: state syncs props ↔ attributes ↔ state', async () => {
+test('processor: props sync to attributes and back', async () => {
   let prev = DefineElement.processor
   DefineElement.processor = (root, state) => {
     clone(root)
@@ -1235,11 +1239,10 @@ test('processor: state syncs props ↔ attributes ↔ state', async () => {
 
   inst.x = 10
   is(inst.getAttribute('x'), '10')
-  is(inst.state.x, 10)
+  is(inst.x, 10)
 
   inst.setAttribute('x', '20')
   is(inst.x, 20)
-  is(inst.state.x, 20)
 
   DefineElement.processor = prev
   inst.remove()
@@ -1252,7 +1255,7 @@ test('processor: dispose via ondisconnected', async () => {
   let prev = DefineElement.processor
   DefineElement.processor = (root, state) => {
     clone(root)
-    state.dispose = () => { disposed = true }
+    state.host.ondispose = () => { disposed = true }
     return state
   }
 
@@ -1261,7 +1264,7 @@ test('processor: dispose via ondisconnected', async () => {
       <x-dispose1>
         <template><span>disposable</span></template>
         <script>
-          this.ondisconnected = () => this.state.dispose?.()
+          this.ondisconnected = () => this.ondispose?.()
         </script>
       </x-dispose1>
     </define-element>
@@ -1362,6 +1365,7 @@ test('integration[petite-vue]: v-text + reactivity', async () => {
     clone(root)
     let r = reactive(state)
     createApp(r).mount(root)
+    state.host.onpropchange = (k, v) => { r[k] = v }
     return r
   }
 
@@ -1384,8 +1388,8 @@ test('integration[petite-vue]: v-text + reactivity', async () => {
   is(inst.querySelector('span').textContent, 'hello')
   is(inst.querySelector('output').textContent, '0')
 
-  // reactivity: state → DOM
-  inst.state.msg = 'world'
+  // reactivity: prop → state → DOM
+  inst.msg = 'world'
   await nextTick()
   is(inst.querySelector('span').textContent, 'world')
 
@@ -1408,6 +1412,7 @@ test('integration[petite-vue]: multiple instances independent', async () => {
     clone(root)
     let r = reactive(state)
     createApp(r).mount(root)
+    state.host.onpropchange = (k, v) => { r[k] = v }
     return r
   }
 
@@ -1429,7 +1434,7 @@ test('integration[petite-vue]: multiple instances independent', async () => {
   is(a.querySelector('output').textContent, '0')
   is(b.querySelector('output').textContent, '99')
 
-  a.state.val = 1
+  a.val = 1
   is(b.querySelector('output').textContent, '99') // b unaffected
 
   DefineElement.processor = prev
@@ -1448,6 +1453,7 @@ test('integration[alpinejs]: x-text + reactivity', async () => {
     let r = Alpine.reactive(state)
     Alpine.addScopeToNode(root, r)
     Alpine.initTree(root)
+    state.host.onpropchange = (k, v) => { r[k] = v }
     return r
   }
 
@@ -1470,8 +1476,8 @@ test('integration[alpinejs]: x-text + reactivity', async () => {
   // initial render
   is(inst.querySelector('span').textContent, 'hello')
 
-  // reactivity: state → DOM
-  inst.state.msg = 'world'
+  // reactivity: prop → state → DOM
+  inst.msg = 'world'
   await tick()
   is(inst.querySelector('span').textContent, 'world')
 
@@ -1624,8 +1630,8 @@ test('props: object with function preserves function via property', async () => 
   is(inst.config.nested.deep, true)
   is(inst.config.fn(), 42)
 
-  // attribute has serialized JSON (functions dropped by JSON.stringify, but property is authoritative)
-  ok(inst.getAttribute('config').includes('deep'))
+  // complex types don't reflect to attributes (can't round-trip without losing identity)
+  is(inst.getAttribute('config'), null, 'object props do not reflect to attributes')
 
   inst.remove()
   el.remove()
@@ -1681,10 +1687,10 @@ test('props: function prop updates state without lossy round-trip', async () => 
   let inst = document.createElement('x-fn-state')
   document.body.appendChild(inst)
 
-  // set function prop — should update state without attribute round-trip
+  // set function prop — should update element prop without attribute round-trip
   inst.handler = fn
-  is(inst.state.handler, fn)
-  is(typeof inst.state.handler, 'function')
+  is(inst.handler, fn)
+  is(typeof inst.handler, 'function')
 
   DefineElement.processor = prev
   inst.remove()
@@ -1967,7 +1973,7 @@ test('late-defined: CE used before definition, cloned after removal', async () =
   await tick()
 
   // Clone must be a proper CE instance — constructor should have run
-  ok(clone1._de_init, 'clone should be initialized by connectedCallback')
+  ok(clone1._de, 'clone should be initialized by connectedCallback')
   is(clone1.querySelector('b')?.textContent, 'content', 'clone should have template content')
 
   wrapper.remove()
@@ -1993,10 +1999,38 @@ test('prop: array setter preserves proxy/reactive objects', async () => {
   let proxy = new Proxy(raw, { get: (t, p) => t[p] })
   inst.items = proxy
 
-  // Setter must pass proxy through to state, not unwrap it
+  // Setter must pass proxy through, not unwrap it
   is(inst.items, proxy, 'getter returns proxy reference')
-  is(inst.state.items, proxy, 'state receives proxy reference')
   is(inst.items.length, 2, 'proxy still functional')
+
+  inst.remove()
+})
+
+
+// Issue: array prop setter serializes to attribute via JSON.stringify.
+// This strips reactive proxy, and attributeChangedCallback gets a plain parsed array.
+// Array/object props should NOT reflect to attributes.
+test('prop: array setter should not serialize to attribute', async () => {
+  h(`<define-element>
+    <x-no-reflect items:array>
+      <template><span :each="item in items" :text="item.name"></span></template>
+    </x-no-reflect>
+  </define-element>`)
+  await tick()
+
+  let inst = document.createElement('x-no-reflect')
+  document.body.appendChild(inst)
+  await tick()
+
+  // Set array with reactive-like objects
+  let data = [{ name: 'A' }, { name: 'B' }]
+  inst.items = data
+  await tick(2)
+
+  // The items attribute should NOT be set (array can't round-trip through attributes)
+  is(inst.hasAttribute('items'), false, 'array prop should not reflect to attribute')
+  // The element prop should have the original array reference
+  ok(inst.items === data || inst.items.length === 2, 'element prop should have original array')
 
   inst.remove()
 })

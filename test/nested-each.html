@@ -23,6 +23,20 @@
 
 <nested-each-test :years="data"></nested-each-test>
 
+<define-element>
+  <deep-each-test data:array>
+    <template>
+      <div :each="yr in data" class="yr3">
+        <div :each="g in yr.items" class="grp">
+          <div :each="x in g.items" class="leaf" :text="x.name"></div>
+        </div>
+      </div>
+    </template>
+  </deep-each-test>
+</define-element>
+
+<deep-each-test :data="data3"></deep-each-test>
+
 <script type="module">
   import test, { is, ok } from 'tst'
   import { tick } from 'wait-please'
@@ -31,12 +45,14 @@
   // Set processor
   customElements.get('define-element').processor = (root, state) => {
     if (root.template) root.appendChild(root.template.content.cloneNode(true))
-    return sprae(root, state)
+    let s = sprae(root, state)
+    state.host.onpropchange = (k, v) => setTimeout(() => s[k] = v)
+    return s
   }
   // Register CE
   document.querySelectorAll('define-element').forEach(el => el._init?.())
 
-  let s = start(document.body, { data: [] })
+  let s = start(document.body, { data: [], data3: [] })
 
   // Async data load
   s.data = [{ key: '2026', items: [{ key: 'March' }, { key: 'Feb' }] }]
@@ -51,6 +67,18 @@
     is(document.querySelectorAll('.month').length, 2, 'two months')
     is(document.querySelectorAll('.month')[0].textContent, 'March')
     is(document.querySelectorAll('.month')[1].textContent, 'Feb')
+  })
+
+  // 3-level nesting test (reproduces mandala expense-list pattern)
+  s.data3 = [{ key: '2026', items: [
+    { key: 'March', items: [{ name: 'exp1' }, { name: 'exp2' }] },
+    { key: 'Feb', items: [{ name: 'exp3' }] }
+  ]}]
+  await tick(8)
+
+  test('3-level nested :each in CE', () => {
+    let items = document.querySelectorAll('.leaf')
+    is(items.length, 3, 'three leaf items')
   })
 
   window.__tst_done = true

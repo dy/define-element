@@ -1,6 +1,6 @@
 /**
  * <define-element> — a custom element to define custom elements.
- * Processor signature: (root, state) => state
+ * Processor signature: (root, state) => void
  *
  * @example
  * <define-element>
@@ -23,7 +23,6 @@ const types = {
 const serialize = (v, type) =>
   v == null ? null :
   type === 'boolean' ? (v ? '' : null) :
-  type === 'array' || type === 'object' ? JSON.stringify(v) :
   type === 'date' ? v.toISOString?.() ?? String(v) :
   String(v)
 
@@ -45,10 +44,7 @@ function parseProps(el) {
   return props
 }
 
-/**
- * Define a custom element from a definition element.
- * @param {Element} el - The definition child (e.g., <x-counter count:number="0">)
- */
+/** Define a custom element from a definition element. */
 function define(el) {
   let tag = el.localName
   let ext = el.getAttribute('is')
@@ -78,22 +74,23 @@ function define(el) {
 
     constructor() {
       super()
-      this._de_init = false
-      this._de_props = {}
-      for (let p of propDefs) this._de_props[p.name] = p.default
+      this._de = false
+      this.props = {}
+      for (let p of propDefs) this.props[p.name] = p.default
     }
 
     connectedCallback() {
-      if (!this._de_init) {
-        this._de_init = true
+      if (!this._de) {
+        this._de = true
 
-        this._de_root = this
-        if (shadowMode) this._de_root = this.shadowRoot || this.attachShadow({ mode: shadowMode })
+        let root = this
+        if (shadowMode) root = this.shadowRoot || this.attachShadow({ mode: shadowMode })
+        this._de_root = root
 
         if (styleText) {
           if (shadowMode) {
-            if (adoptedSheet) this._de_root.adoptedStyleSheets = [adoptedSheet]
-            else { let s = document.createElement('style'); s.textContent = styleText; this._de_root.prepend(s) }
+            if (adoptedSheet) root.adoptedStyleSheets = [adoptedSheet]
+            else { let s = document.createElement('style'); s.textContent = styleText; root.prepend(s) }
           } else if (!injectedStyles.has(tag)) {
             injectedStyles.add(tag)
             let s = document.createElement('style')
@@ -103,7 +100,7 @@ function define(el) {
           }
         }
 
-        if (tpl) this._de_root.template = tpl
+        if (tpl) root.template = tpl
 
         this._render()
 
@@ -113,8 +110,6 @@ function define(el) {
       this.onconnected?.()
     }
 
-    // Repeatable: clears content, applies processor/template.
-    // Called on first connect and when processor is set after the fact.
     _render() {
       let root = this._de_root
 
@@ -123,20 +118,17 @@ function define(el) {
       let state = { host: this }
       for (let p of propDefs) {
         let attrVal = this.getAttribute(p.name)
-        state[p.name] = attrVal != null ? p.coerce(attrVal) : this._de_props[p.name]
+        state[p.name] = attrVal != null ? p.coerce(attrVal) : this.props[p.name]
       }
 
       if (_processor) {
         _noProc.delete(this)
-        // light DOM: save & strip non-prop attrs so processor doesn't claim parent directives
         let saved = !shadowMode ? [...this.attributes].filter(a => !(a.name in propMap)).map(a => [a.name, a.value]) : []
         for (let [n] of saved) this.removeAttribute(n)
-        let result = _processor(root, state)
-        this.state = result || state
+        _processor(root, state)
         for (let [n, v] of saved) this.setAttribute(n, v)
       } else {
         if (tpl && !root.firstChild) root.appendChild(tpl.content.cloneNode(true))
-        this.state = state
         _noProc.add(this)
       }
     }
@@ -150,25 +142,24 @@ function define(el) {
       this.onadopted?.()
     }
 
-    attributeChangedCallback(name, oldVal, newVal) {
+    attributeChangedCallback(name, _, newVal) {
       if (this._de_reflecting) return
       let def = propMap[name]
       if (!def) return
       let val = def.coerce(newVal)
-      this._de_props[name] = val
-      if (this._de_init && this.state) this.state[name] = val
-      this.onattributechanged?.({ attributeName: name, oldValue: oldVal, newValue: newVal })
+      this.props[name] = val
+      this.onpropchange?.(name, val)
     }
   }
 
   for (let p of propDefs) {
     Object.defineProperty(C.prototype, p.name, {
-      get() { return this._de_props[p.name] },
+      get() { return this.props[p.name] },
       set(v) {
         let val = p.coerce(v)
-        this._de_props[p.name] = val
-        if (this._de_init && this.state) this.state[p.name] = val
-        if (typeof val === 'function') return
+        this.props[p.name] = val
+        this.onpropchange?.(p.name, val)
+        if (typeof val === 'function' || p.type === 'array' || p.type === 'object') return
         let s = serialize(val, p.type)
         this._de_reflecting = true
         if (s == null) this.removeAttribute(p.name)
@@ -179,7 +170,6 @@ function define(el) {
       configurable: true
     })
   }
-
 
   let name = ext || tag
   if (!customElements.get(name))
@@ -210,8 +200,6 @@ function scopeCSS(css, tag) {
 
 class DefineElement extends HTMLElement {
   connectedCallback() {
-    // children present → upgrade/programmatic/module (parsing done) → microtask
-    // children absent → sync script mid-parse (children not yet parsed) → macro-task
     if (this.childElementCount) queueMicrotask(() => this._init())
     else setTimeout(() => this._init())
   }
@@ -229,7 +217,6 @@ class DefineElement extends HTMLElement {
   }
 }
 
-// Setting processor re-renders instances that were created without one
 Object.defineProperty(DefineElement, 'processor', {
   get: () => _processor,
   set: (fn) => {

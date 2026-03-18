@@ -596,7 +596,7 @@
       </div>
       <div class="feature">
         <h3>Lifecycle</h3>
-        <p><code>onconnected</code>, <code>ondisconnected</code>, <code>onadopted</code>, <code>onattributechanged</code>. Script runs once per instance.</p>
+        <p><code>onconnected</code>, <code>ondisconnected</code>, <code>onpropchange</code>. Script runs once per instance.</p>
       </div>
       <div class="feature">
         <h3>No eval</h3>
@@ -643,7 +643,7 @@
   <div class="wrap reveal">
     <a class="section-label" href="#lifecycle">Lifecycle</a>
     <h2>Connect, disconnect, update</h2>
-    <p class="lead">Script runs once on first connect. Hooks fire on connect, disconnect, attribute change.</p>
+    <p class="lead">Script runs once on first connect. Hooks fire on connect, disconnect, prop change.</p>
 
     <div class="demo-panel">
       <div class="code-side">
@@ -721,7 +721,7 @@
     <h2>Why this exists</h2>
     <p class="lead" style="max-width: 620px">The <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md" style="color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft);transition:border-color 0.2s" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='var(--accent-soft)'">W3C Declarative Custom Elements proposal</a> has stalled for years. JS-side solutions require build tools and class boilerplate. The declarative CE space is a graveyard.</p>
     <p class="lead" style="max-width: 620px">The gap: no lightweight way to define a custom element as HTML. Paste a <code>&lt;define-element&gt;</code> block into any page, CMS, or markdown and it works.</p>
-    <p style="font-size:15px; color: var(--fg2); line-height: 1.7; max-width: 620px">This ~270-line polyfill is evidence that the proposal is implementable and useful. Ship it natively.</p>
+    <p style="font-size:15px; color: var(--fg2); line-height: 1.7; max-width: 620px">This ~200-line polyfill is evidence that the proposal is implementable and useful. Ship it natively.</p>
     <p style="font-size:13px; margin-top:20px"><a href="https://github.com/dy/define-element#readme" style="color:var(--accent);text-decoration:none;transition:color 0.2s" onmouseenter="this.style.color='var(--accent2)'" onmouseleave="this.style.color='var(--accent)'">Read the docs &rarr;</a></p>
   </div>
 </section>
@@ -803,7 +803,8 @@
 
 <span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
   <span class="n">root</span><span class="p">.</span><span class="f">appendChild</span><span class="p">(</span><span class="n">root</span><span class="p">.</span><span class="a">template</span><span class="p">.</span><span class="a">content</span><span class="p">.</span><span class="f">cloneNode</span><span class="p">(</span><span class="v">true</span><span class="p">))</span>
-  <span class="k">return</span> <span class="f">sprae</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+  <span class="k">let</span> <span class="n">s</span> <span class="p">=</span> <span class="f">sprae</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+  <span class="n">state</span><span class="p">.</span><span class="n">host</span><span class="p">.</span><span class="a">onpropchange</span> <span class="p">= (</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">) =&gt;</span> <span class="f">setTimeout</span><span class="p">(() =&gt;</span> <span class="n">s</span><span class="p">[</span><span class="n">k</span><span class="p">] =</span> <span class="n">v</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c">// &lt;x-counter count:number="0"&gt;</span>
@@ -820,7 +821,7 @@
   <span class="k">let</span> <span class="n">r</span> <span class="p">=</span> <span class="n">Alpine</span><span class="p">.</span><span class="f">reactive</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
   <span class="n">Alpine</span><span class="p">.</span><span class="f">addScopeToNode</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
   <span class="n">Alpine</span><span class="p">.</span><span class="f">initTree</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
-  <span class="k">return</span> <span class="n">r</span>
+  <span class="n">state</span><span class="p">.</span><span class="n">host</span><span class="p">.</span><span class="a">onpropchange</span> <span class="p">= (</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">) =&gt; {</span> <span class="n">r</span><span class="p">[</span><span class="n">k</span><span class="p">] =</span> <span class="n">v</span> <span class="p">}</span>
 <span class="p">}</span>
 
 <span class="c">// &lt;x-counter count:number="0"&gt;</span>
@@ -836,7 +837,7 @@
   <span class="n">root</span><span class="p">.</span><span class="f">appendChild</span><span class="p">(</span><span class="n">root</span><span class="p">.</span><span class="a">template</span><span class="p">.</span><span class="a">content</span><span class="p">.</span><span class="f">cloneNode</span><span class="p">(</span><span class="v">true</span><span class="p">))</span>
   <span class="k">let</span> <span class="n">r</span> <span class="p">=</span> <span class="f">reactive</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
   <span class="f">createApp</span><span class="p">(</span><span class="n">r</span><span class="p">).</span><span class="f">mount</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
-  <span class="k">return</span> <span class="n">r</span>
+  <span class="n">state</span><span class="p">.</span><span class="n">host</span><span class="p">.</span><span class="a">onpropchange</span> <span class="p">= (</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">) =&gt; {</span> <span class="n">r</span><span class="p">[</span><span class="n">k</span><span class="p">] =</span> <span class="n">v</span> <span class="p">}</span>
 <span class="p">}</span>
 
 <span class="c">// &lt;x-counter count:number="0"&gt;</span>
@@ -850,7 +851,6 @@
 
 <span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
   <span class="n">root</span><span class="p">.</span><span class="f">replaceChildren</span><span class="p">(</span><span class="k">new</span> <span class="f">TemplateInstance</span><span class="p">(</span><span class="n">root</span><span class="p">.</span><span class="a">template</span><span class="p">,</span> <span class="n">state</span><span class="p">))</span>
-  <span class="k">return</span> <span class="n">state</span>
 <span class="p">}</span>
 
 <span class="c">// &lt;x-greeting name:string="world"&gt;</span>

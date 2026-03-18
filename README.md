@@ -16,7 +16,7 @@ A custom element to define custom elements.
     <script>
       const update = () => this.querySelector('#msg').textContent = `Hello, ${this.name}!`
       update()
-      this.onattributechanged = update
+      this.onpropchange = update
     </script>
     <style>:host { font-style: italic }</style>
   </x-greeting>
@@ -68,7 +68,7 @@ Declared as attributes with optional types:
 | `:object` | `JSON.parse(v)` | `{}` |
 | (none) | auto-detect | as-is |
 
-Properties reflect to attributes and vice versa. Instance attributes override definition defaults.
+Primitive props reflect to attributes and vice versa. Array/object props are property-only (no attribute reflection). Instance attributes override definition defaults.
 
 
 ## Template & Script
@@ -97,12 +97,12 @@ Properties reflect to attributes and vice versa. Instance attributes override de
 |--------|-------------|
 | `this` | The element instance (in `<script>`) |
 | `host` | The element instance (in processor templates) |
-| `this.count` | Prop value |
-| `this.state` | Template state (from processor or plain object) |
+| `this.count` | Prop value (getter/setter) |
+| `this.props` | Prop values object (source of truth) |
+| `this.onpropchange` | Prop changed callback `(name, val)` |
 | `this.onconnected` | Connected callback |
 | `this.ondisconnected` | Disconnected callback |
 | `this.onadopted` | Adopted callback |
-| `this.onattributechanged` | Attribute changed callback |
 
 Script runs once on first connect. `onconnected` fires after script, including on first connect. On re-insertion, only `onconnected` fires. Async `await` is auto-detected.
 
@@ -130,7 +130,7 @@ Add `shadowrootmode` to the template for encapsulation. Slots work natively:
       let dlg = this.shadowRoot.querySelector('#dialog'), close = this.shadowRoot.querySelector('#close')
       const sync = () => this.open ? dlg.showModal() : dlg.close()
       close.onclick = () => this.open = false
-      this.onattributechanged = sync
+      this.onpropchange = sync
       sync()
     </script>
     <style>
@@ -150,28 +150,27 @@ Add `shadowrootmode` to the template for encapsulation. Slots work natively:
 
 ## Processor
 
-Pluggable template engine. Without a processor, templates are static HTML (cloned automatically). With a processor, the processor owns template mounting — it receives an empty `root` with `root.template` pointing to the original `<template>` element, and is responsible for cloning/rendering content.
+Pluggable template engine. Without a processor, templates are static HTML (cloned automatically). With a processor, the processor owns template mounting and reactivity.
 
 ```js
-processor(root, state) => state
+processor(root, state) => void
 ```
 
-- `root` — element (light DOM) or shadowRoot (shadow DOM), empty
-- `root.template` — original `<template>` element (shared across instances)
-- `state` — `{ host, propName: value }` from prop defaults + instance attributes
-  - `host` — the CE element instance (reserved, do not declare as prop)
-- Returns reactive state object (stored as `el.state`)
+- `root` — element (light DOM) or shadowRoot (shadow DOM), empty, with `root.template`
+- `state` — `{ host, ...propValues }` snapshot from prop defaults + instance attributes
+- `host.onpropchange` — set this to receive prop updates: `(name, val) => {}`
 
-In light DOM, non-prop host attributes (parent directives like `:each`, `v-text`, `x-bind`) are temporarily stripped during processor execution so the processor doesn't process them. Shadow DOM doesn't need this — the ShadowRoot is naturally isolated from host attributes.
+In light DOM, non-prop host attributes (parent directives like `:each`, `v-text`, `x-bind`) are temporarily stripped during processor execution so the processor doesn't process them.
 
 ```js
 let DE = customElements.get('define-element')
 
-// sprae — clone template, then sprae processes content reactively
+// sprae
 import sprae from 'sprae'
 DE.processor = (root, state) => {
   root.appendChild(root.template.content.cloneNode(true))
-  return sprae(root, state)
+  let s = sprae(root, state)
+  state.host.onpropchange = (k, v) => setTimeout(() => s[k] = v)
 }
 ```
 
@@ -190,11 +189,10 @@ DE.processor = (root, state) => {
 No `<script>` needed — [sprae](https://github.com/dy/sprae) updates the template automatically when state changes. Other processors:
 
 ```js
-// @github/template-parts — renders directly from template, no pre-clone needed
+// @github/template-parts
 import { TemplateInstance } from '@github/template-parts'
 DE.processor = (root, state) => {
   root.replaceChildren(new TemplateInstance(root.template, state))
-  return state
 }
 
 // petite-vue
@@ -203,7 +201,7 @@ DE.processor = (root, state) => {
   root.appendChild(root.template.content.cloneNode(true))
   let r = reactive(state)
   createApp(r).mount(root)
-  return r
+  state.host.onpropchange = (k, v) => { r[k] = v }
 }
 
 // Alpine.js
@@ -213,7 +211,7 @@ DE.processor = (root, state) => {
   let r = Alpine.reactive(state)
   Alpine.addScopeToNode(root, r)
   Alpine.initTree(root)
-  return r
+  state.host.onpropchange = (k, v) => { r[k] = v }
 }
 ```
 
@@ -235,7 +233,7 @@ The [W3C Declarative Custom Elements proposal](https://github.com/WICG/webcompon
 
 The gap: no lightweight way to define a custom element as HTML — components as content, not as code. Paste a `<define-element>` block into any page, CMS, or markdown file and it works. No npm, no import maps, no build step. One `<script>` tag.
 
-This ~270-line reference implementation is evidence that the W3C proposal is implementable and useful. Ship it natively.
+This ~200-line reference implementation is evidence that the W3C proposal is implementable and useful. Ship it natively.
 
 
 ## Alternatives
