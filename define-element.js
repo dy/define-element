@@ -106,6 +106,9 @@ function define(el) {
         this._render()
 
         if (scriptText) runScript(scriptText, this)
+      } else if (_processor && !this._de_proc) {
+        // reconnected after processor became available
+        this._render()
       }
 
       this.onconnected?.()
@@ -123,6 +126,7 @@ function define(el) {
       }
 
       if (_processor) {
+        this._de_proc = true
         _noProc.delete(this)
         let saved = !shadowMode ? [...this.attributes].filter(a => !(a.name in propMap)).map(a => [a.name, a.value]) : []
         for (let [n] of saved) this.removeAttribute(n)

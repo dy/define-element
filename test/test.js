@@ -2035,3 +2035,45 @@ test('prop: array setter should not serialize to attribute', async () => {
 
   inst.remove()
 })
+
+
+// Issue: CE with :if is disconnected before processor is set.
+// When processor is set, _noProc skips disconnected elements.
+// When :if re-connects, connectedCallback skips because _de is true.
+// Result: element stays empty.
+test('reconnect: CE renders after disconnect+reconnect when processor set late', async () => {
+  h(`<define-element>
+    <x-reconnect label:string="hi">
+      <template><b>content</b></template>
+    </x-reconnect>
+  </define-element>`)
+  await tick()
+
+  let inst = document.createElement('x-reconnect')
+  document.body.appendChild(inst)
+  await tick()
+
+  ok(inst._de, 'initialized')
+  ok(inst.querySelector('b'), 'has template content (no-proc clone)')
+
+  // Simulate :if removing element before processor is set
+  inst.remove()
+  await tick()
+
+  // Now set processor (like module script does after :if has already processed)
+  let prev = DefineElement.processor
+  let procCalled = false
+  DefineElement.processor = (root, state) => { procCalled = true; clone(root) }
+  await tick()
+
+  // Re-insert (like :if becoming true) — should re-render with processor
+  procCalled = false
+  document.body.appendChild(inst)
+  await tick()
+
+  ok(procCalled, 'processor called on reconnect')
+  ok(inst.querySelector('b'), 'has template content after reconnect')
+
+  DefineElement.processor = prev
+  inst.remove()
+})
