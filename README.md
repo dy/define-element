@@ -170,7 +170,7 @@ import sprae from 'sprae'
 DE.processor = (root, state) => {
   root.appendChild(root.template.content.cloneNode(true))
   let s = sprae(root, state)
-  state.host.onpropchange = (k, v) => setTimeout(() => s[k] = v)
+  state.host.onpropchange = (k, v) => s[k] = v
 }
 ```
 

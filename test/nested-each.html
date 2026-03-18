@@ -46,11 +46,8 @@
   customElements.get('define-element').processor = (root, state) => {
     if (root.template) root.appendChild(root.template.content.cloneNode(true))
     let s = sprae(root, state)
-    state.host.onpropchange = (k, v) => setTimeout(() => s[k] = v)
-    return s
+    state.host.onpropchange = (k, v) => s[k] = v
   }
-  // Register CE
-  document.querySelectorAll('define-element').forEach(el => el._init?.())
 
   let s = start(document.body, { data: [], data3: [] })
 

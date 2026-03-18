@@ -16,8 +16,8 @@ const types = {
   number: v => v == null ? 0 : Number(v),
   boolean: v => v != null && v !== 'false' && v !== false,
   date: v => v == null ? null : new Date(v),
-  array: v => v == null ? [] : typeof v === 'string' ? JSON.parse(v) : v,
-  object: v => v == null ? {} : typeof v === 'string' ? JSON.parse(v) : v,
+  array: v => v == null ? [] : typeof v === 'string' ? JSON.parse(v) : Array.from(v),
+  object: v => v == null ? {} : typeof v === 'string' ? JSON.parse(v) : typeof v === 'function' ? v : Object.assign({}, v),
 }
 
 const serialize = (v, type) =>
@@ -31,6 +31,7 @@ const auto = v => v == null ? v : !isNaN(v) && v !== '' ? Number(v) : v === 'tru
 let injectedStyles = new Set()
 let _processor = null
 let _noProc = new Set()
+let _pending = new Set()
 
 /** Parse prop declarations from element attributes: name:type="default" */
 function parseProps(el) {
@@ -200,6 +201,7 @@ function scopeCSS(css, tag) {
 
 class DefineElement extends HTMLElement {
   connectedCallback() {
+    _pending.add(this)
     if (this.childElementCount) queueMicrotask(() => this._init())
     else setTimeout(() => this._init())
   }
@@ -207,6 +209,7 @@ class DefineElement extends HTMLElement {
   _init() {
     if (this._de_done) return
     this._de_done = true
+    _pending.delete(this)
     let defs = [...this.children].filter(c => {
       let ln = c.localName
       return ln !== 'template' && ln !== 'script' && ln !== 'style'
@@ -221,6 +224,7 @@ Object.defineProperty(DefineElement, 'processor', {
   get: () => _processor,
   set: (fn) => {
     _processor = fn
+    for (let el of _pending) el._init()
     for (let el of _noProc) if (el.isConnected) el._render()
     _noProc.clear()
   }

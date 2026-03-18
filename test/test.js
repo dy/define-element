@@ -1981,8 +1981,8 @@ test('late-defined: CE used before definition, cloned after removal', async () =
 })
 
 
-// Array/object prop setters must preserve reactive proxies (not unwrap via Array.from)
-test('prop: array setter preserves proxy/reactive objects', async () => {
+// Props are a scope boundary — reactive proxies are unwrapped to plain values
+test('prop: array setter strips reactive proxy to plain array', async () => {
   h(`<define-element>
     <x-arr-proxy items:array>
       <template></template>
@@ -1994,14 +1994,15 @@ test('prop: array setter preserves proxy/reactive objects', async () => {
   document.body.appendChild(inst)
   await tick()
 
-  // Proxy simulating reactive array from sprae/signals
   let raw = ['a', 'b']
   let proxy = new Proxy(raw, { get: (t, p) => t[p] })
   inst.items = proxy
 
-  // Setter must pass proxy through, not unwrap it
-  is(inst.items, proxy, 'getter returns proxy reference')
-  is(inst.items.length, 2, 'proxy still functional')
+  // Coercion converts to plain array (strips proxy)
+  ok(Array.isArray(inst.items), 'stored as plain array')
+  is(inst.items.length, 2, 'values preserved')
+  is(inst.items[0], 'a')
+  is(inst.items[1], 'b')
 
   inst.remove()
 })

@@ -464,7 +464,7 @@
     .hero .stats { gap: 28px; }
     .demo-panel { grid-template-columns: 1fr; }
     .demo-panel .code-side { border-right: none; border-bottom: 1px solid var(--border); }
-    .features { grid-template-columns: 1fr; }
+    .features { grid-template-columns: 1fr !important; }
     .proc-tabs { flex-wrap: wrap; }
     .proc-tab:not(.active) { font-size: 0; padding: 8px 12px; }
     .proc-tab:not(.active) svg, .proc-tab:not(.active) img, .proc-tab:not(.active) > span { font-size: 16px; opacity: 0.85; }
@@ -577,30 +577,22 @@
     <h2>No API</h2>
     <p class="lead">The API is markup</p>
 
-    <div class="features">
+    <div class="features" style="grid-template-columns: repeat(2, 1fr)">
       <div class="feature">
-        <h3>Props</h3>
-        <p>Declare with optional types: <code>count:number="0"</code>. Props reflect to attributes and back.</p>
+        <h3>Typed Props</h3>
+        <p>Declare with optional types: <code>count:number="0"</code>. Reflect to attributes. <code>onpropchange</code> callback.</p>
       </div>
       <div class="feature">
-        <h3>Styles</h3>
-        <p>Light DOM scopes via CSS nesting, <code>:host</code> works in both. Shadow DOM uses <code>adoptedStyleSheets</code>. </p>
+        <h3>Scoped Styles</h3>
+        <p>CSS nesting for light DOM, <code>adoptedStyleSheets</code> for shadow. <code>:host</code> works in both.</p>
       </div>
       <div class="feature">
-        <h3>Shadow DOM & Slots</h3>
-        <p><code>shadowrootmode</code> for encapsulation with native slots for content projection.</p>
-      </div>
-      <div class="feature">
-        <h3>Standard DOM</h3>
-        <p>Use <code>id</code> and <code>querySelector</code> for element refs. No custom abstractions.</p>
+        <h3>Shadow DOM</h3>
+        <p><code>shadowrootmode</code> for encapsulation. Native slots for content projection.</p>
       </div>
       <div class="feature">
         <h3>Lifecycle</h3>
-        <p><code>onconnected</code>, <code>ondisconnected</code>, <code>onpropchange</code>. Script runs once per instance.</p>
-      </div>
-      <div class="feature">
-        <h3>No eval</h3>
-        <p>Scripts run via element injection, not <code>eval</code> or <code>new Function</code>. CSP-compatible.</p>
+        <p><code>onconnected</code>, <code>ondisconnected</code>, <code>onpropchange</code>. Script runs once per instance via injection (no <code>eval</code>).</p>
       </div>
     </div>
   </div>
@@ -662,6 +654,7 @@
         <span class="n">t</span><span class="p">.</span><span class="n">textContent</span> <span class="p">=</span>
           <span class="k">new</span> <span class="f">Date</span><span class="p">().</span><span class="f">toLocaleTimeString</span><span class="p">()</span>
       <span class="f">tick</span><span class="p">()</span>
+      <span class="n">this</span><span class="p">.</span><span class="a">onpropchange</span> <span class="p">=</span> <span class="n">tick</span>
       <span class="n">this</span><span class="p">.</span><span class="a">onconnected</span> <span class="p">= () =&gt;</span>
         <span class="n">id</span> <span class="p">=</span> <span class="f">setInterval</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="v">1000</span><span class="p">)</span>
       <span class="n">this</span><span class="p">.</span><span class="a">ondisconnected</span> <span class="p">= () =&gt;</span>
@@ -804,7 +797,7 @@
 <span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
   <span class="n">root</span><span class="p">.</span><span class="f">appendChild</span><span class="p">(</span><span class="n">root</span><span class="p">.</span><span class="a">template</span><span class="p">.</span><span class="a">content</span><span class="p">.</span><span class="f">cloneNode</span><span class="p">(</span><span class="v">true</span><span class="p">))</span>
   <span class="k">let</span> <span class="n">s</span> <span class="p">=</span> <span class="f">sprae</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
-  <span class="n">state</span><span class="p">.</span><span class="n">host</span><span class="p">.</span><span class="a">onpropchange</span> <span class="p">= (</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">) =&gt;</span> <span class="f">setTimeout</span><span class="p">(() =&gt;</span> <span class="n">s</span><span class="p">[</span><span class="n">k</span><span class="p">] =</span> <span class="n">v</span><span class="p">)</span>
+  <span class="n">state</span><span class="p">.</span><span class="n">host</span><span class="p">.</span><span class="a">onpropchange</span> <span class="p">= (</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">) =&gt;</span> <span class="n">s</span><span class="p">[</span><span class="n">k</span><span class="p">] =</span> <span class="n">v</span>
 <span class="p">}</span>
 
 <span class="c">// &lt;x-counter count:number="0"&gt;</span>
