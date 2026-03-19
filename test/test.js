@@ -221,7 +221,7 @@ test('props: instance attribute overrides default', async () => {
 })
 
 
-test('script: querySelector for element refs', async () => {
+test('script: DOM access via onconnected', async () => {
   let el = h(`
     <define-element>
       <x-parts1>
@@ -230,8 +230,10 @@ test('script: querySelector for element refs', async () => {
           <button id="btn">click</button>
         </template>
         <script>
-          this.dataset.labelText = this.querySelector('#label').textContent
-          this.dataset.btnText = this.querySelector('#btn').textContent
+          this.onconnected = () => {
+            this.dataset.labelText = this.querySelector('#label').textContent
+            this.dataset.btnText = this.querySelector('#btn').textContent
+          }
         </script>
       </x-parts1>
     </define-element>
@@ -580,8 +582,10 @@ test('shadow: element refs in shadow DOM', async () => {
           <button id="btn">shadow-btn</button>
         </template>
         <script>
-          this.dataset.label = this.shadowRoot.querySelector('#label').textContent
-          this.dataset.btn = this.shadowRoot.querySelector('#btn').textContent
+          this.onconnected = () => {
+            this.dataset.label = this.shadowRoot.querySelector('#label').textContent
+            this.dataset.btn = this.shadowRoot.querySelector('#btn').textContent
+          }
         </script>
       </x-shadow-parts>
     </define-element>
@@ -1878,7 +1882,9 @@ test("template: dispatchEvent in CE template targets host, not window", async ()
       <x-evt1>
         <template><button id="btn">go</button></template>
         <script>
-          this.querySelector('#btn').onclick = () => this.dispatchEvent(new CustomEvent('action', { bubbles: true }))
+          this.onconnected = () => {
+            this.querySelector('#btn').onclick = () => this.dispatchEvent(new CustomEvent('action', { bubbles: true }))
+          }
         </script>
       </x-evt1>
     </define-element>
@@ -2073,6 +2079,35 @@ test('reconnect: CE renders after disconnect+reconnect when processor set late',
 
   ok(procCalled, 'processor called on reconnect')
   ok(inst.querySelector('b'), 'has template content after reconnect')
+
+  DefineElement.processor = prev
+  inst.remove()
+})
+
+
+// Prop changes propagate to processor state via onpropchange contract.
+test('processor: prop changes propagate via onpropchange', async () => {
+  let prev = DefineElement.processor
+  DefineElement.processor = spraelike
+
+  h(`<define-element>
+    <x-prop-react label:string="hello">
+      <template><span :text="label"></span></template>
+    </x-prop-react>
+  </define-element>`)
+  await tick()
+
+  let inst = document.createElement('x-prop-react')
+  document.body.appendChild(inst)
+  await tick()
+
+  is(inst.querySelector('span').textContent, 'hello', 'initial render')
+
+  // Update prop — onpropchange should propagate to processor state
+  inst.label = 'world'
+  await tick()
+
+  is(inst.querySelector('span').textContent, 'world', 'prop update propagates via onpropchange')
 
   DefineElement.processor = prev
   inst.remove()

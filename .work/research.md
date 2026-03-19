@@ -1,4 +1,4 @@
-## [ ] Template syntax
+## [x] Template syntax -> changeable procesor
 
 1. `attr={{value}}`
   + template-parts proposal
@@ -105,3 +105,76 @@
   - `:host` is rewritten to `:scope` (equivalent meaning within `@scope`)
   - For shadow DOM, `adoptedStyleSheets` is used (shared across instances)
   - No regex CSS parsing needed — the browser handles all CSS features (`@media`, `@keyframes`, nesting, etc.)
+
+## Script execution order: before render (decided)
+
+  ### Problem
+  Script runs after `_render()`. Processor-based CEs can't define methods in `<script>` that the template scope needs — the scope is already created by the time the script runs.
+
+  ### Options considered
+
+  #### A. Always script-after-render (was current)
+  - Script has DOM access (template already cloned)
+  - But methods defined in script aren't in processor scope
+  - Script body and `onconnected` fire at nearly the same time — redundant
+
+  #### B. Conditional: script-before when processor active, after when not
+  - Implicit behavior based on global `_processor` state
+  - Same CE behaves differently depending on when processor was set
+  - User doesn't know timing changed — `querySelector` silently returns null
+
+  #### C. Always script-before-render (chosen)
+  - Script = define logic (methods, state, callbacks). Like a class body.
+  - Processor = render DOM (clone, bind, hydrate). Like `render()`.
+  - `onconnected` = element is live in DOM. Like `connectedCallback`.
+  - Three phases, one order, always. No mode switch.
+
+  ### Key reasoning
+
+  1. **DOM setup belongs to the processor.** Whether it's sprae binding `:onclick` or the default processor cloning a template, DOM rendering is the processor's job. Scripts shouldn't do DOM setup.
+
+  2. **No "no-processor mode" — there's a default processor.** The built-in template clone IS a processor. Custom processors (sprae, alpine) replace it. Script's relationship to the processor is always the same regardless.
+
+  3. **Closure scope + onconnected solves persistence.** Scripts can declare persistent variables in the body, then populate them in `onconnected`:
+    ```html
+    <script>
+      let btn  // persists across reconnects
+      this.onconnected = () => { btn = this.querySelector('#btn') }
+      this.ondisconnected = () => { btn = null }
+    </script>
+    ```
+    No state loss on reconnect. `ondisconnected` can clean up.
+
+  4. **Consistent with the platform.** In class-based CEs, nobody queries DOM in the constructor — they do it in `connectedCallback`. Our `onconnected` IS `connectedCallback`. The old pattern (DOM access in script body) was a convenience shortcut that conflated class body with connectedCallback.
+
+  5. **Eliminates script/onconnected redundancy.** Previously both fired after render — two hooks for the same moment. Now they serve distinct purposes: script = setup, onconnected = DOM ready.
+
+  6. **Enables React-like component pattern.** Methods defined in `<script>` are on the host before the processor runs. The processor can inject them into the template scope:
+    ```html
+    <script>
+      this.format = function(v) { return `$${v}` }
+    </script>
+    <template>
+      <span :text="format(count)"></span>
+    </template>
+    ```
+    Uses `function` (not arrow) so processor can rebind `this` to reactive scope.
+
+  ### Breaking change
+  Existing scripts with top-level `this.querySelector(...)` need to move DOM access into `this.onconnected`. This is the correct SoC — was a shortcut before.
+
+  ### Migration
+  ```html
+  <!-- before -->
+  <script>
+    let btn = this.querySelector('#btn')
+    btn.onclick = () => this.count++
+  </script>
+
+  <!-- after -->
+  <script>
+    this.onconnected = () => {
+      this.querySelector('#btn').onclick = () => this.count++
+    }
+  </script>
+  ```

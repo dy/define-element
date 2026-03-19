@@ -14,9 +14,9 @@ A custom element to define custom elements.
       <p id="msg"></p>
     </template>
     <script>
-      const update = () => this.querySelector('#msg').textContent = `Hello, ${this.name}!`
-      update()
-      this.onpropchange = update
+      this.onpropchange = () =>
+        this.querySelector('#msg').textContent = `Hello, ${this.name}!`
+      this.onconnected = () => this.onpropchange()
     </script>
     <style>:host { font-style: italic }</style>
   </x-greeting>
@@ -73,7 +73,7 @@ Primitive props reflect to attributes and vice versa. Array/object props are pro
 
 ## Template & Script
 
-`<template>` is cloned into each instance on first connect. `<script>` runs once per instance with `this` as the element, via script injection (no `eval`). Use standard `querySelector` for element refs.
+`<script>` runs once per instance before render — define methods, state, and callbacks. `<template>` is then cloned and rendered (by the processor or literally). `onconnected` fires after render — use it for DOM access. No `eval`; scripts run via element injection.
 
 ```html
 <define-element>
@@ -82,10 +82,13 @@ Primitive props reflect to attributes and vice versa. Array/object props are pro
       <time id="display"></time>
     </template>
     <script>
-      let id, display = this.querySelector('#display')
+      let id, display  // persistent closure scope
       const tick = () => display.textContent = new Date().toLocaleTimeString()
-      tick()
-      this.onconnected = () => id = setInterval(tick, 1000)
+      this.onconnected = () => {
+        display = this.querySelector('#display')
+        tick()
+        id = setInterval(tick, 1000)
+      }
       this.ondisconnected = () => clearInterval(id)
     </script>
     <style>:host { font-family: monospace; }</style>
@@ -100,11 +103,11 @@ Primitive props reflect to attributes and vice versa. Array/object props are pro
 | `this.count` | Prop value (getter/setter) |
 | `this.props` | Prop values object (source of truth) |
 | `this.onpropchange` | Prop changed callback `(name, val)` |
-| `this.onconnected` | Connected callback |
+| `this.onconnected` | DOM ready callback (fires on every connect) |
 | `this.ondisconnected` | Disconnected callback |
 | `this.onadopted` | Adopted callback |
 
-Script runs once on first connect. `onconnected` fires after script, including on first connect. On re-insertion, only `onconnected` fires. Async `await` is auto-detected.
+Script runs once before render — like a class body. `onconnected` fires after render on every connect — like `connectedCallback`. Async `await` is auto-detected.
 
 
 ## Style
@@ -127,11 +130,15 @@ Add `shadowrootmode` to the template for encapsulation. Slots work natively:
       </dialog>
     </template>
     <script>
-      let dlg = this.shadowRoot.querySelector('#dialog'), close = this.shadowRoot.querySelector('#close')
+      let dlg, close
       const sync = () => this.open ? dlg.showModal() : dlg.close()
-      close.onclick = () => this.open = false
       this.onpropchange = sync
-      sync()
+      this.onconnected = () => {
+        dlg = this.shadowRoot.querySelector('#dialog')
+        close = this.shadowRoot.querySelector('#close')
+        close.onclick = () => this.open = false
+        sync()
+      }
     </script>
     <style>
       dialog::backdrop { background: rgba(0,0,0,.5); }

@@ -548,10 +548,10 @@
       <span class="p">&lt;/</span><span class="k">button</span><span class="p">&gt;</span>
     <span class="p">&lt;/</span><span class="k">template</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="k">script</span><span class="p">&gt;</span>
-      <span class="k">let</span> <span class="n">btn</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#btn'</span><span class="p">),</span> <span class="n">n</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#n'</span><span class="p">)</span>
-      <span class="n">btn</span><span class="p">.</span><span class="f">onclick</span> <span class="p">= () =&gt; {</span>
-        <span class="n">this</span><span class="p">.</span><span class="n">count</span><span class="p">++</span>
-        <span class="n">n</span><span class="p">.</span><span class="n">textContent</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="n">count</span>
+      <span class="n">this</span><span class="p">.</span><span class="a">onconnected</span> <span class="p">= () =&gt; {</span>
+        <span class="k">let</span> <span class="n">n</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#n'</span><span class="p">)</span>
+        <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#btn'</span><span class="p">).</span><span class="f">onclick</span> <span class="p">= () =&gt;</span>
+          <span class="n">n</span><span class="p">.</span><span class="n">textContent</span> <span class="p">= ++</span><span class="n">this</span><span class="p">.</span><span class="n">count</span>
       <span class="p">}</span>
     <span class="p">&lt;/</span><span class="k">script</span><span class="p">&gt;</span>
   <span class="p">&lt;/</span><span class="k">x-counter</span><span class="p">&gt;</span>
@@ -649,14 +649,14 @@
       <span class="p">&lt;</span><span class="k">time</span> <span class="a">id</span><span class="p">=</span><span class="v">"t"</span><span class="p">&gt;&lt;/</span><span class="k">time</span><span class="p">&gt;</span>
     <span class="p">&lt;/</span><span class="k">template</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="k">script</span><span class="p">&gt;</span>
-      <span class="k">let</span> <span class="n">id</span><span class="p">,</span> <span class="n">t</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#t'</span><span class="p">)</span>
+      <span class="k">let</span> <span class="n">id</span><span class="p">,</span> <span class="n">t</span>
       <span class="k">const</span> <span class="f">tick</span> <span class="p">= () =&gt;</span>
         <span class="n">t</span><span class="p">.</span><span class="n">textContent</span> <span class="p">=</span>
           <span class="k">new</span> <span class="f">Date</span><span class="p">().</span><span class="f">toLocaleTimeString</span><span class="p">()</span>
-      <span class="f">tick</span><span class="p">()</span>
-      <span class="n">this</span><span class="p">.</span><span class="a">onpropchange</span> <span class="p">=</span> <span class="n">tick</span>
-      <span class="n">this</span><span class="p">.</span><span class="a">onconnected</span> <span class="p">= () =&gt;</span>
-        <span class="n">id</span> <span class="p">=</span> <span class="f">setInterval</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="v">1000</span><span class="p">)</span>
+      <span class="n">this</span><span class="p">.</span><span class="a">onconnected</span> <span class="p">= () =&gt; {</span>
+        <span class="n">t</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#t'</span><span class="p">)</span>
+        <span class="f">tick</span><span class="p">();</span> <span class="n">id</span> <span class="p">=</span> <span class="f">setInterval</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="v">1000</span><span class="p">)</span>
+      <span class="p">}</span>
       <span class="n">this</span><span class="p">.</span><span class="a">ondisconnected</span> <span class="p">= () =&gt;</span>
         <span class="f">clearInterval</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
     <span class="p">&lt;/</span><span class="k">script</span><span class="p">&gt;</span>
@@ -750,13 +750,16 @@
           ">Clicks: <span id="n">0</span></button>
         </template>
         <script>
-          let btn = this.querySelector('#btn'), n = this.querySelector('#n')
-          n.textContent = this.count
-          btn.onclick = () => { this.count++; n.textContent = this.count }
-          btn.onmousedown = () => btn.style.transform = 'scale(0.97)'
-          btn.onmouseup = () => btn.style.transform = ''
-          btn.onmouseenter = () => btn.style.borderColor = 'oklch(0.59 0.18 255)'
-          btn.onmouseleave = () => { btn.style.borderColor = 'oklch(0.88 0.01 250)'; btn.style.transform = '' }
+          let btn, n
+          this.onconnected = () => {
+            btn = this.querySelector('#btn'); n = this.querySelector('#n')
+            n.textContent = this.count
+            btn.onclick = () => { this.count++; n.textContent = this.count }
+            btn.onmousedown = () => btn.style.transform = 'scale(0.97)'
+            btn.onmouseup = () => btn.style.transform = ''
+            btn.onmouseenter = () => btn.style.borderColor = 'oklch(0.59 0.18 255)'
+            btn.onmouseleave = () => { btn.style.borderColor = 'oklch(0.88 0.01 250)'; btn.style.transform = '' }
+          }
         <\/script>
       </x-demo-counter>
     </define-element>
@@ -778,10 +781,13 @@
           "></time>
         </template>
         <script>
-          let id, t = this.querySelector('#t')
+          let id, t
           const tick = () => t.textContent = new Date().toLocaleTimeString()
-          tick()
-          this.onconnected = () => id = setInterval(tick, 1000)
+          this.onconnected = () => {
+            t = this.querySelector('#t')
+            tick()
+            id = setInterval(tick, 1000)
+          }
           this.ondisconnected = () => clearInterval(id)
         <\/script>
       </x-demo-clock>

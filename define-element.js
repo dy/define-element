@@ -6,7 +6,7 @@
  * <define-element>
  *   <x-counter count:number="0">
  *     <template><output id="out">0</output><button id="inc">+</button></template>
- *     <script>this.querySelector('#inc').onclick = () => this.count++</script>
+ *     <script>this.onconnected = () => this.querySelector('#inc').onclick = () => this.count++</script>
  *   </x-counter>
  * </define-element>
  */
@@ -103,9 +103,9 @@ function define(el) {
 
         if (tpl) root.template = tpl
 
-        this._render()
-
         if (scriptText) runScript(scriptText, this)
+
+        this._render()
       } else if (_processor && !this._de_proc) {
         // reconnected after processor became available
         this._render()
