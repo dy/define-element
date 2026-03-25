@@ -155,6 +155,7 @@
         letter-spacing: -0.03em;
         line-height: 1.15;
         margin-bottom: 24px;
+        text-wrap: pretty;
       }
 
       .hero h1 em {
@@ -169,6 +170,7 @@
         max-width: 520px;
         margin: 0 auto 36px;
         line-height: 1.7;
+        text-wrap: pretty;
       }
 
       .hero .stats {
@@ -728,6 +730,18 @@
           flex-direction: column;
           align-items: center;
         }
+
+        .install-cmd {
+          padding-inline: 14px;
+          font-size: 13px;
+          white-space: nowrap;
+        }
+
+        .type-table th,
+        .type-table td {
+          padding-inline: 10px;
+          white-space: nowrap;
+        }
       }
     </style>
   </head>
@@ -760,9 +774,9 @@
         <h1>A custom element to<br><em>define custom elements</em>.</h1>
 
         <p class="subtitle">
-      <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md" style="border-bottom:none">Declarative Custom Elements</a> concept implementation. <br>
+      <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md" style="border-bottom:none">Declarative Custom Elements</a> concept&nbsp;implementation. <br>
       <!-- Typed props, scoped styles, shadow DOM, lifecycle events. <br> -->
-      Components for alpine, petite-vue, sprae, template-parts etc.
+      <!-- Components for alpine, petite-vue, sprae, template-parts etc. -->
     </p>
 
         <div class="install-row">
@@ -826,7 +840,7 @@
         </div>
 
 
-        <div class="features" style="margin-top: 56px; padding: 0 24px">
+        <div class="features" style="margin-top: 56px; padding: 0 20px">
           <a class="feature" href="#props">
             <h3>Props</h3>
             <p>Typed attributes with coercion. Auto-detected or explicit. Reflected to DOM.</p>

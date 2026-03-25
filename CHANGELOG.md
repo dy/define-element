@@ -1,46 +1,79 @@
 # Changelog
 
+## 1.5.2 — 2026-03-25
+
+- Hide `<define-element>` blocks until processed (FOUC prevention)
+- Handle closed shadow DOM without throwing
+- Recover browser-consumed declarative shadow DOM (open mode only)
+- Rename internals: `_de` → `_de_inited`, `_de_proc` → `_de_processed`, `_de_this` → `_de_host`
+- Add TypeScript declarations
+- Add `exports` map to package.json
+- Remove dead test files, clean .gitignore
+- Add Playwright browser tests to CI
+- Document limitations in README
+
 ## 1.5.1 — 2026-03-25
 
-- Fix declarative shadow DOM recovery for browser-consumed templates
-- Website update
+- Recover browser-consumed declarative shadow DOM templates
 
 ## 1.5.0 — 2026-03-18
 
-- Render order: script runs before template render
-- Website and documentation rewrite
+- Run script before processor/template render (was after)
 
 ## 1.4.1 — 2026-03-18
 
-- Fix reconnect when processor set after initial connect
+- Re-render on reconnect if processor was set after first connect
 
 ## 1.4.0 — 2026-03-18
 
-- Strip reactive proxy from array/object prop setters
-- Array/object props no longer reflect to attributes
+- Copy arrays/objects on prop set to strip reactive proxies
+- Track pending `<define-element>` blocks, flush on processor assignment
 
 ## 1.3.0 — 2026-03-18
 
-- Simplify props: remove separate state object, use `this.props` directly
-- Consolidate tests
+- Remove separate `state` object — props live on `this.props` directly
+- Processor signature: `(root, state) => void` (was `=> state`)
+- Replace `onattributechanged` with `onpropchange(name, val)`
+- Stop serializing array/object to attributes
 
 ## 1.2.0 — 2026-03-17
 
-- Consolidate test suite, remove template-parts bundling
-- Browser loading tests
+- Remove template-parts dependency and JS API exports
+- Processor becomes `DefineElement.processor` static property with late-binding
+- Guard against double-init
+- Coerce prop defaults at parse time
+
+## 1.1.5 — 2026-03-17
+
+- Fix array type coercion (passthrough instead of `Array.from`)
+
+## 1.1.4 — 2026-03-16
+
+- Use macro-task fallback when `<define-element>` has no children yet (sync script mid-parse)
+
+## 1.1.3 — 2026-03-16
+
+- Clear stale children before processor runs
+- Add `host` reference to state object
+
+## 1.1.2 — 2026-03-16
+
+- Remove named exports (side-effect only)
+
+## 1.1.1 — 2026-03-16
+
+- Strip non-prop attributes from host during processor execution (prevents parent directives leaking)
 
 ## 1.1.0 — 2026-03-14
 
-- New processor contract: `(root, state) => void`
-- Temporarily strip non-prop host attributes during processor execution
+- New processor contract: `(root, state) => state`
 - Skip function serialization to attributes
 
 ## 1.0.0 — 2026-03-13
 
-- Initial release
 - Typed props with coercion (string, number, boolean, date, array, object, auto)
-- Scoped styles (CSS nesting for light DOM, adoptedStyleSheets for shadow DOM)
-- Shadow DOM with declarative shadow DOM support
-- Lifecycle callbacks (onconnected, ondisconnected, onpropchange, onadopted)
-- Pluggable processor for template engines
-- `is=""` customized built-in element support
+- Scoped styles (light DOM via CSS nesting, shadow DOM via adoptedStyleSheets)
+- Declarative shadow DOM support
+- Lifecycle: onconnected, ondisconnected, onpropchange, onadopted
+- Pluggable processor slot for template engines
+- `is=""` customized built-in support
