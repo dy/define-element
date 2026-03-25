@@ -59,6 +59,13 @@ function define(el) {
   let shadowMode = tpl?.getAttribute('shadowrootmode') || null
   if (shadowMode) tpl.removeAttribute('shadowrootmode')
 
+  // Handle browser-consumed declarative shadow DOM
+  if (!tpl && el.shadowRoot) {
+    shadowMode = el.shadowRoot.mode
+    tpl = document.createElement('template')
+    tpl.content.append(...el.shadowRoot.childNodes)
+  }
+
   let scriptText = el.querySelector('script')?.textContent || null
   let styleText = el.querySelector('style')?.textContent || null
 

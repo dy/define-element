@@ -1,515 +1,782 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="A custom element to define custom elements. Components as content, not code. No class, no build, no framework.">
-<title>define-element — A custom element to define custom elements</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
 
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A custom element to define custom elements. Components as content, not code. No class, no build, no framework.">
+    <title>define-element — A custom element to define custom elements</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
 
-  :root {
-    --fg: oklch(0.25 0.02 250);
-    --fg2: oklch(0.48 0.02 250);
-    --fg3: oklch(0.65 0.02 250);
-    --bg: oklch(0.97 0.005 250);
-    --bg2: oklch(1 0 0);
-    --border: oklch(0.91 0.01 250);
-    --accent: oklch(0.59 0.18 255);
-    --accent2: oklch(0.68 0.15 255);
-    --accent-soft: oklch(0.96 0.02 255);
-    --code-bg: oklch(0.95 0.007 250);
-    --radius: 6px;
-    --mono: 'IBM Plex Mono', monospace;
-    --sans: 'Inter', system-ui, sans-serif;
-  }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        box-sizing: border-box;
+      }
 
-  html { scroll-behavior: smooth; }
+      :root {
+        --fg: oklch(0.25 0.02 250);
+        --fg2: oklch(0.48 0.02 250);
+        --fg3: oklch(0.65 0.02 250);
+        --bg: oklch(0.97 0.005 250);
+        --bg2: oklch(1 0 0);
+        --border: oklch(0.91 0.01 250);
+        --accent: oklch(0.59 0.18 255);
+        --accent2: oklch(0.68 0.15 255);
+        --accent-soft: oklch(0.96 0.02 255);
+        --code-bg: oklch(0.95 0.007 250);
+        --radius: 6px;
+        --mono: 'IBM Plex Mono', monospace;
+        --sans: 'Inter', system-ui, sans-serif;
+      }
 
-  body {
-    font-family: var(--sans);
-    color: var(--fg);
-    background: radial-gradient(ellipse at 50% -100px, oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.4) 350px, transparent 700px) no-repeat, var(--bg);
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
+      html {
+        scroll-behavior: smooth;
+      }
 
-  /* --- Layout --- */
-  .wrap {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
+      body {
+        font-family: var(--sans);
+        color: var(--fg);
+        background: radial-gradient(ellipse at 50% -100px, oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.4) 350px, transparent 700px) no-repeat, var(--bg);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
 
-  section {
-    padding: 80px 0;
-    border-bottom: 1px solid var(--border);
-  }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+        border-bottom: 1px solid var(--accent-soft);
+        transition: border-color 0.2s ease;
+      }
 
-  section:last-of-type { border-bottom: none; }
+      a:hover {
+        border-color: var(--accent);
+      }
 
-  /* --- Fade-in on scroll --- */
-  .reveal {
-    opacity: 0;
-    transform: translateY(32px);
-    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+      /* --- Layout --- */
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
 
-  /* --- Nav --- */
-  nav {
-    padding: 20px 0;
-  }
-  nav .wrap {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  nav .logo {
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--fg);
-    letter-spacing: -0.02em;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-  }
-  nav .logo a {
-    color: var(--fg3);
-    font-weight: 400;
-    font-size: 13px;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  nav .logo a:hover { color: var(--accent); }
-  nav .links {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  nav .links a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 36px;
-    min-height: 36px;
-    color: var(--fg3);
-    transition: color 0.2s;
-  }
-  nav .links a:hover { color: var(--fg); }
-  nav .links a svg { width: 18px; height: 18px; fill: currentColor; }
+      section {
+        padding: 80px 0;
+        border-bottom: 1px solid var(--border);
+      }
 
-  /* --- Hero --- */
-  .hero {
-    padding: 80px 0 96px;
-    text-align: center;
-  }
-  .hero h1 {
-    font-size: 52px;
-    font-weight: 300;
-    letter-spacing: -0.03em;
-    line-height: 1.15;
-    margin-bottom: 24px;
-  }
-  .hero h1 em {
-    font-style: normal;
-    font-weight: 700;
-    color: var(--accent);
-  }
-  .hero .subtitle {
-    font-size: 17px;
-    color: var(--fg2);
-    max-width: 520px;
-    margin: 0 auto 36px;
-    line-height: 1.7;
-  }
-  .hero .stats {
-    display: flex;
-    gap: 48px;
-    justify-content: center;
-    margin-top: 36px;
-  }
-  .hero .stat {
-    text-align: center;
-  }
-  .hero .stat-val {
-    font-family: var(--mono);
-    font-size: 24px;
-    font-weight: 500;
-    color: var(--fg);
-    letter-spacing: -0.02em;
-  }
-  .hero .stat-label {
-    font-size: 10px;
-    color: var(--fg3);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-top: 4px;
-  }
-  .install-row {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .install-cmd {
-    font-family: var(--mono);
-    font-size: 14px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.05), 0 4px 12px oklch(0.25 0.02 250 / 0.04);
-    padding: 12px 24px;
-    color: var(--fg);
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
-    position: relative;
-  }
-  .install-cmd:hover { border-color: var(--accent2); box-shadow: 0 2px 4px oklch(0.25 0.02 250 / 0.06), 0 8px 24px oklch(0.25 0.02 250 / 0.06); }
-  .install-cmd:active { transform: scale(0.97); }
-  .install-cmd.copied { border-color: var(--accent); color: var(--accent); }
-  .install-cmd::before { content: '$ '; color: var(--fg3); }
-  .install-cmd.cdn::before { content: none; }
-  .install-cmd.copied::before { content: none; }
+      section:last-of-type {
+        border-bottom: none;
+      }
 
-  /* --- Code blocks --- */
-  .code-block {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.04), 0 4px 12px oklch(0.25 0.02 250 / 0.03), 0 8px 24px oklch(0.25 0.02 250 / 0.02);
-  }
-  .code-bar {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    background: var(--code-bg);
-    border-bottom: 1px solid var(--border);
-    gap: 8px;
-  }
-  .code-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--fg3);
-    opacity: 0.35;
-  }
-  .code-title {
-    font-size: 11px;
-    color: var(--fg3);
-    font-family: var(--sans);
-    margin-left: 6px;
-  }
-  .code-block pre {
-    padding: 20px;
-    font-family: var(--mono);
-    font-size: 13px;
-    line-height: 1.65;
-    overflow-x: auto;
-    color: var(--fg);
-  }
+      /* --- Fade-in on scroll --- */
+      .reveal {
+        opacity: 0;
+        transform: translateY(32px);
+        transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      }
 
-  /* --- Inline code pills --- */
-  code {
-    font-family: var(--mono);
-    font-size: 0.88em;
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    padding: 1px 6px;
-    border-radius: 10px;
-    white-space: nowrap;
-  }
-  pre code {
-    background: none;
-    border: none;
-    padding: 0;
-    border-radius: 0;
-    font-size: inherit;
-    white-space: pre;
-  }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
 
-  /* Syntax colors — cool tones */
-  .k { color: oklch(0.55 0.18 255); }   /* keyword / tag */
-  .a { color: oklch(0.58 0.13 195); }   /* attribute */
-  .v { color: oklch(0.53 0.17 290); }   /* value */
-  .c { color: oklch(0.65 0.02 250); }   /* comment */
-  .p { color: oklch(0.52 0.02 250); }   /* punctuation */
-  .f { color: oklch(0.55 0.18 255); }   /* function */
-  .t { color: oklch(0.53 0.17 275); }   /* type */
+      /* --- Nav --- */
+      nav {
+        padding: 20px 0;
+      }
 
-  /* --- Section headings --- */
-  .section-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--accent);
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    text-decoration: none;
-    display: inline-block;
-  }
-  .section-label:hover { color: var(--accent2); }
-  section h2 {
-    font-size: 32px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    margin-bottom: 12px;
-    line-height: 1.2;
-  }
-  section .lead {
-    font-size: 15px;
-    color: var(--fg2);
-    max-width: 560px;
-    margin-bottom: 36px;
-    line-height: 1.7;
-  }
+      nav .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
 
-  /* --- Demo panel (code + live result) --- */
-  .demo-panel {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    background: var(--bg2);
-    box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.05), 0 4px 12px oklch(0.25 0.02 250 / 0.04), 0 12px 32px oklch(0.25 0.02 250 / 0.03);
-  }
-  .demo-panel .code-side {
-    border-right: 1px solid var(--border);
-    overflow: hidden;
-  }
-  .demo-panel .code-side .code-bar {
-    border-radius: 0;
-  }
-  .demo-panel .code-side pre {
-    padding: 20px;
-    font-family: var(--mono);
-    font-size: 12.5px;
-    line-height: 1.6;
-    overflow-x: auto;
-    color: var(--fg);
-    margin: 0;
-    min-height: 100%;
-  }
-  .demo-panel .result-side {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 32px;
-    gap: 16px;
-    background-image:
-      linear-gradient(oklch(0.92 0.005 250) 0.5px, transparent 0.5px),
-      linear-gradient(90deg, oklch(0.92 0.005 250) 0.5px, transparent 0.5px);
-    background-size: 20px 20px;
-    background-position: 10px 10px;
-  }
-  .result-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fg3);
-    align-self: flex-start;
-  }
-  .result-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-    justify-content: center;
-    width: 100%;
-  }
+      nav .logo {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--fg);
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
 
-  /* --- Feature grid --- */
-  .features {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0 32px;
-  }
-  .feature {
-    padding: 20px 1rem 24px 0;
-    border-top: 1px solid var(--border);
-    border-top-width: 0.5px;
-  }
-  .feature h3 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: var(--fg);
-    letter-spacing: -0.01em;
-  }
-  .feature p {
-    font-size: 13px;
-    color: var(--fg2);
-    line-height: 1.6;
-  }
-  .feature code {
-    font-size: 11.5px;
-  }
+      nav .logo a {
+        color: var(--fg3);
+        font-weight: 400;
+        font-size: 13px;
+        border-bottom: none;
+        transition: color 0.2s;
+      }
 
-  /* --- Processor tabs --- */
-  .proc-tabs {
-    display: flex;
-    gap: 2px;
-    margin-bottom: 0;
-    position: relative;
-    z-index: 1;
-  }
-  .proc-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--fg3);
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-bottom: none;
-    border-radius: var(--radius) var(--radius) 0 0;
-    cursor: pointer;
-    transition: color 0.15s, background 0.15s;
-    text-decoration: none;
-    user-select: none;
-  }
-  .proc-tab:hover { color: var(--fg2); }
-  .proc-tab.active {
-    color: var(--fg);
-    background: var(--bg2);
-    border-bottom: 1px solid var(--bg2);
-    margin-bottom: -1px;
-  }
-  .proc-tab svg, .proc-tab img { width: 14px; height: 14px; opacity: 0.6; }
-  .proc-tab.active svg, .proc-tab.active img { opacity: 0.85; }
+      nav .logo a:hover {
+        color: var(--accent);
+      }
 
-  /* --- Props table --- */
-  .type-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .type-table th {
-    text-align: left;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fg2);
-    padding: 10px 16px;
-    background: var(--code-bg);
-    border-bottom: 1px solid var(--border);
-  }
-  .type-table td {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    color: var(--fg2);
-    transition: background 0.15s;
-  }
-  .type-table tbody tr:last-child td { border-bottom: none; }
-  .type-table tr:hover td {
-    background: var(--accent-soft);
-  }
-  .type-table td:first-child {
-    font-family: var(--mono);
-    font-weight: 500;
-    color: var(--accent);
-  }
-  .type-table td code {
-    font-size: 11.5px;
-  }
+      nav .links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
 
-  /* --- Footer --- */
-  footer {
-    padding: 48px 0 36px;
-    text-align: center;
-    color: var(--fg3);
-    font-size: 13px;
-  }
-  footer a {
-    color: var(--fg3);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  footer a:hover { color: var(--accent); }
-  footer .om {
-    font-size: 24px;
-    display: block;
-    margin-top: 14px;
-    opacity: 0.25;
-    transition: opacity 0.3s;
-  }
-  footer .om:hover { opacity: 0.5; }
+      nav .links a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        min-height: 36px;
+        color: var(--fg3);
+        border-bottom: none;
+        transition: color 0.2s;
+      }
 
-  /* --- Reduced motion --- */
-  @media (prefers-reduced-motion: reduce) {
-    .reveal { transition: none; opacity: 1; transform: none; }
-    * { transition-duration: 0.01ms !important; }
-  }
+      nav .links a:hover {
+        color: var(--fg);
+      }
 
-  /* --- Responsive --- */
-  @media (max-width: 680px) {
-    .hero { padding: 48px 0 64px; }
-    .hero h1 { font-size: 32px; }
-    .hero .stat-val { font-size: 20px; }
-    .hero .stats { gap: 28px; }
-    .demo-panel { grid-template-columns: 1fr; }
-    .demo-panel .code-side { border-right: none; border-bottom: 1px solid var(--border); }
-    .features { grid-template-columns: 1fr !important; }
-    .proc-tabs { flex-wrap: wrap; }
-    .proc-tab:not(.active) { font-size: 0; padding: 8px 12px; }
-    .proc-tab:not(.active) svg, .proc-tab:not(.active) img, .proc-tab:not(.active) > span { font-size: 16px; opacity: 0.85; }
-    section { padding: 48px 0; }
-    section h2 { font-size: 26px; }
-    .install-row { flex-direction: column; align-items: center; }
-  }
-</style>
-</head>
-<body>
+      nav .links a svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+      }
 
-<!-- Nav -->
-<nav>
-  <div class="wrap">
-    <span class="logo">&lt;define-element&gt; <a id="ver" href="https://github.com/dy/define-element/releases">v1</a></span>
-    <span class="links">
-      <a href="https://www.npmjs.com/package/define-element" title="npm">
-        <svg viewBox="0 0 16 16"><path d="M0 0v16h16V0H0zm13 13H8V5H5v8H3V3h10v10z"/></svg>
-      </a>
-      <a href="https://github.com/dy/define-element" title="GitHub">
-        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-      </a>
-    </span>
-  </div>
-</nav>
+      /* --- Hero --- */
+      .hero {
+        padding: 80px 0 80px;
+        text-align: center;
+      }
 
-<!-- Hero -->
-<section class="hero">
-  <div class="wrap">
-    <h1>A custom element to<br><em>define custom elements</em>.</h1>
-    <p class="subtitle">
+      .hero h1 {
+        font-size: 52px;
+        font-weight: 300;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        margin-bottom: 24px;
+      }
+
+      .hero h1 em {
+        font-style: normal;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      .hero .subtitle {
+        font-size: 17px;
+        color: var(--fg2);
+        max-width: 520px;
+        margin: 0 auto 36px;
+        line-height: 1.7;
+      }
+
+      .hero .stats {
+        display: flex;
+        gap: 48px;
+        justify-content: center;
+        margin-top: 36px;
+      }
+
+      .hero .stat {
+        text-align: center;
+      }
+
+      .hero .stat-val {
+        font-family: var(--mono);
+        font-size: 24px;
+        font-weight: 500;
+        color: var(--fg);
+        letter-spacing: -0.02em;
+      }
+
+      .hero .stat-label {
+        font-size: 10px;
+        color: var(--fg3);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 4px;
+      }
+
+      .install-row {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .install-cmd {
+        font-family: var(--mono);
+        font-size: 14px;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.05), 0 4px 12px oklch(0.25 0.02 250 / 0.04);
+        padding: 12px 24px;
+        color: var(--fg);
+        cursor: pointer;
+        transition: border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+        position: relative;
+      }
+
+      .install-cmd:hover {
+        border-color: var(--accent2);
+        box-shadow: 0 2px 4px oklch(0.25 0.02 250 / 0.06), 0 8px 24px oklch(0.25 0.02 250 / 0.06);
+      }
+
+      .install-cmd:active {
+        transform: scale(0.97);
+      }
+
+      .install-cmd.copied {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .install-cmd::before {
+        content: '$ ';
+        color: var(--fg3);
+      }
+
+      .install-cmd.cdn::before {
+        content: none;
+      }
+
+      .install-cmd.copied::before {
+        content: none;
+      }
+
+      /* --- Code blocks --- */
+      .code-block {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.04), 0 4px 12px oklch(0.25 0.02 250 / 0.03), 0 8px 24px oklch(0.25 0.02 250 / 0.02);
+      }
+
+      .code-bar {
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        background: var(--code-bg);
+        border-bottom: 1px solid var(--border);
+        gap: 8px;
+      }
+
+      .code-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--fg3);
+        opacity: 0.35;
+      }
+
+      .code-title {
+        font-size: 11px;
+        color: var(--fg3);
+        font-family: var(--sans);
+        margin-left: 6px;
+      }
+
+      .code-block pre {
+        padding: 20px;
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.65;
+        overflow-x: auto;
+        color: var(--fg);
+      }
+
+      /* --- Inline code pills --- */
+      code {
+        font-family: var(--mono);
+        font-size: 0.88em;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        padding: 1px 6px;
+        border-radius: 10px;
+        white-space: nowrap;
+      }
+
+      pre code {
+        background: none;
+        border: none;
+        padding: 0;
+        border-radius: 0;
+        font-size: inherit;
+        white-space: pre;
+      }
+
+      /* Syntax colors — cool tones */
+      .k {
+        color: oklch(0.55 0.18 255);
+      }
+
+      /* keyword / tag */
+      .a {
+        color: oklch(0.58 0.13 195);
+      }
+
+      /* attribute */
+      .v {
+        color: oklch(0.53 0.17 290);
+      }
+
+      /* value */
+      .c {
+        color: oklch(0.65 0.02 250);
+      }
+
+      /* comment */
+      .p {
+        color: oklch(0.52 0.02 250);
+      }
+
+      /* punctuation */
+      .f {
+        color: oklch(0.55 0.18 255);
+      }
+
+      /* function */
+      .t {
+        color: oklch(0.53 0.17 275);
+      }
+
+      /* type */
+
+      /* --- Section headings --- */
+      .section-label {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--accent);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border-bottom: none;
+        display: inline-block;
+      }
+
+      .section-label:hover {
+        color: var(--accent2);
+      }
+
+      section h2 {
+        font-size: 32px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin-bottom: 12px;
+        line-height: 1.2;
+      }
+
+      section .lead {
+        font-size: 15px;
+        color: var(--fg2);
+        max-width: 560px;
+        margin-bottom: 36px;
+        line-height: 1.7;
+      }
+
+      #why .lead {
+        margin-bottom: 16px;
+      }
+
+      /* --- Demo panel (code + live result) --- */
+      .demo-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--bg2);
+        box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.05), 0 4px 12px oklch(0.25 0.02 250 / 0.04), 0 12px 32px oklch(0.25 0.02 250 / 0.03);
+      }
+
+      .demo-panel .code-side {
+        border-right: 1px solid var(--border);
+        overflow: hidden;
+      }
+
+      .demo-panel .code-side .code-bar {
+        border-radius: 0;
+      }
+
+      .demo-panel .code-side pre {
+        padding: 20px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.6;
+        overflow-x: auto;
+        color: var(--fg);
+        margin: 0;
+        min-height: 100%;
+      }
+
+      .demo-panel .result-side {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 32px;
+        gap: 16px;
+        background-image:
+          linear-gradient(oklch(0.92 0.005 250) 0.5px, transparent 0.5px),
+          linear-gradient(90deg, oklch(0.92 0.005 250) 0.5px, transparent 0.5px);
+        background-size: 20px 20px;
+        background-position: 10px 10px;
+      }
+
+      .result-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--fg3);
+        align-self: flex-start;
+      }
+
+      .result-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        justify-content: center;
+        width: 100%;
+      }
+
+      #styles-demo > * { align-self: stretch; }
+
+      /* --- Feature grid --- */
+      .features {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+      }
+
+      .feature {
+        text-align: left;
+        color: inherit;
+        display: block;
+        border-bottom: none;
+      }
+
+      .feature:hover h3 {
+        color: var(--accent);
+      }
+
+      .feature h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--fg);
+        letter-spacing: -0.01em;
+        padding-top: 0px;
+        transition: color 0.15s ease;
+      }
+
+      .feature h3::before {
+        content: '';
+        display: block;
+        width: 36.6%;
+        height: 1px;
+        background: var(--border);
+        margin-bottom: 24px;
+        transition: background 0.2s ease, box-shadow 0.3s ease;
+      }
+
+      .feature:hover h3::before {
+        background: oklch(0.59 0.18 255 / 0.35);
+        box-shadow: 0 8px 24px -4px oklch(0.59 0.18 255 / 0.15), 0 16px 48px -8px oklch(0.59 0.18 255 / 0.08);
+      }
+
+      .feature p {
+        font-size: 13px;
+        color: var(--fg2);
+        line-height: 1.6;
+        text-wrap: pretty;
+      }
+
+      .feature code {
+        font-size: 11.5px;
+      }
+
+      /* --- Processor tabs --- */
+      .proc-tabs {
+        display: flex;
+        gap: 2px;
+        margin-bottom: 0;
+        position: relative;
+        z-index: 1;
+      }
+
+      .proc-tab,
+      .style-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--fg3);
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-bottom: none;
+        border-radius: var(--radius) var(--radius) 0 0;
+        cursor: pointer;
+        transition: color 0.15s, background 0.15s;
+        text-decoration: none;
+        user-select: none;
+      }
+
+      .proc-tab:hover,
+      .style-tab:hover {
+        color: var(--fg2);
+      }
+
+      .proc-tab.active,
+      .style-tab.active {
+        color: var(--fg);
+        background: var(--bg2);
+        border-bottom: 1px solid var(--bg2);
+        margin-bottom: -1px;
+      }
+
+      .proc-tab svg,
+      .proc-tab img {
+        width: 14px;
+        height: 14px;
+        opacity: 0.6;
+      }
+
+      .proc-tab.active svg,
+      .proc-tab.active img {
+        opacity: 0.85;
+      }
+
+      /* --- Props grid (code + table side-by-side) --- */
+      .props-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .props-grid .code-block {
+        margin: 0;
+      }
+
+      .props-grid .table-wrap {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--bg2);
+        box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.04), 0 4px 12px oklch(0.25 0.02 250 / 0.03), 0 8px 24px oklch(0.25 0.02 250 / 0.02);
+      }
+
+      /* --- Props table --- */
+      .type-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      .type-table th {
+        text-align: left;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--fg2);
+        padding: 10px 16px;
+        background: var(--code-bg);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .type-table td {
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--fg2);
+        transition: background 0.15s;
+      }
+
+      .type-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .type-table tr:hover td {
+        background: var(--accent-soft);
+      }
+
+      .type-table td:first-child {
+        font-family: var(--mono);
+        font-weight: 500;
+        color: var(--accent);
+      }
+
+      .type-table td code {
+        font-size: 11.5px;
+      }
+
+      /* --- Footer --- */
+      footer {
+        padding: 48px 0 36px;
+        text-align: center;
+        color: var(--fg3);
+        font-size: 13px;
+      }
+
+      footer a {
+        color: var(--fg3);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      footer a:hover {
+        color: var(--accent);
+      }
+
+      footer .om {
+        font-size: 24px;
+        display: block;
+        margin-top: 14px;
+        opacity: 0.25;
+        border-bottom: none;
+        transition: opacity 0.3s;
+      }
+
+      footer .om:hover {
+        opacity: 0.5;
+      }
+
+      /* --- Reduced motion --- */
+      @media (prefers-reduced-motion: reduce) {
+        .reveal {
+          transition: none;
+          opacity: 1;
+          transform: none;
+        }
+
+        * {
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* --- Responsive --- */
+      @media (max-width: 680px) {
+        .hero {
+          padding: 48px 0 64px;
+        }
+
+        .hero h1 {
+          font-size: 32px;
+        }
+
+        .hero .stat-val {
+          font-size: 20px;
+        }
+
+        .hero .stats {
+          gap: 28px;
+        }
+
+        .demo-panel {
+          grid-template-columns: 1fr;
+        }
+
+        .demo-panel .code-side {
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .props-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .features {
+          grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+        .proc-tabs {
+          flex-wrap: wrap;
+        }
+
+        .proc-tab:not(.active) {
+          font-size: 0;
+          padding: 8px 12px;
+        }
+
+        .proc-tab:not(.active) svg,
+        .proc-tab:not(.active) img,
+        .proc-tab:not(.active)>span {
+          font-size: 16px;
+          opacity: 0.85;
+        }
+
+        section {
+          padding: 48px 0;
+        }
+
+        section h2 {
+          font-size: 26px;
+        }
+
+        .install-row {
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <!-- Nav -->
+    <nav>
+      <div class="wrap">
+        <span class="logo">&lt;define-element&gt; <a id="ver" href="https://github.com/dy/define-element/releases">v1</a></span>
+        <span class="links">
+          <a href="https://www.npmjs.com/package/define-element" title="npm">
+            <svg viewBox="0 0 16 16">
+              <path d="M0 0v16h16V0H0zm13 13H8V5H5v8H3V3h10v10z" />
+            </svg>
+          </a>
+          <a href="https://github.com/dy/define-element" title="GitHub">
+            <svg viewBox="0 0 16 16">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+          </a>
+        </span>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="wrap">
+        <h1>A custom element to<br><em>define custom elements</em>.</h1>
+
+        <p class="subtitle">
       Declarative Custom Elements implementation. <br>
-      Typed props, scoped styles, shadow DOM, lifecycle events. <br>
+      <!-- Typed props, scoped styles, shadow DOM, lifecycle events. <br> -->
       Components for alpine, petite-vue, sprae, template-parts etc.
     </p>
 
-    <div class="install-row">
-      <span class="install-cmd cdn" onclick="navigator.clipboard.writeText('&lt;script src=&quot;https://unpkg.com/define-element&quot;&gt;&lt;/script&gt;');this.classList.add('copied');var t=this.textContent;this.textContent='copied!';setTimeout(()=>{this.textContent=t;this.classList.remove('copied')},1200)" title="Click to copy">&lt;script src="unpkg.com/define-element"&gt;</span>
-    </div>
+        <div class="install-row">
+          <span class="install-cmd cdn"
+            onclick="navigator.clipboard.writeText('&lt;script src=&quot;https://unpkg.com/define-element&quot;&gt;&lt;/script&gt;');this.classList.add('copied');var t=this.textContent;this.textContent='copied!';setTimeout(()=>{this.textContent=t;this.classList.remove('copied')},1200)"
+            title="Click to copy">&lt;script src="unpkg.com/define-element"&gt;</span>
+        </div>
 
+        <!--
     <div class="stats">
-      <!-- <div class="stat">
+      <div class="stat">
         <div class="stat-val">~1.6KB</div>
         <div class="stat-label">gzip</div>
-      </div> -->
+      </div>
       <div class="stat">
         <div class="stat-val">0</div>
         <div class="stat-label">boilerplate</div>
@@ -523,24 +790,15 @@
         <div class="stat-label">build</div>
       </div>
     </div>
-  </div>
-</section>
+  </div> -->
 
-
-<!-- Live Demo: Counter -->
-<section id="demo">
-  <div class="wrap reveal">
-    <a class="section-label" href="#demo">Intro</a>
-    <h2>Web-components by example</h2>
-    <p class="lead">Define custom elements in HTML. No JS required.<p>
-
-    <div class="demo-panel">
-      <div class="code-side">
-        <div class="code-bar">
-          <span class="code-dot"></span><span class="code-dot"></span><span class="code-dot"></span>
-          <span class="code-title">index.html</span>
-        </div>
-        <pre><span class="p">&lt;</span><span class="k">define-element</span><span class="p">&gt;</span>
+        <div class="demo-panel" id="demo" style="margin-top: 48px; text-align: left">
+          <div class="code-side">
+            <div class="code-bar">
+              <span class="code-dot"></span><span class="code-dot"></span><span class="code-dot"></span>
+              <span class="code-title">index.html</span>
+            </div>
+            <pre><span class="p">&lt;</span><span class="k">define-element</span><span class="p">&gt;</span>
   <span class="p">&lt;</span><span class="k">x-counter</span> <span class="a">count</span><span class="t">:number</span><span class="p">=</span><span class="v">"0"</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="k">template</span><span class="p">&gt;</span>
       <span class="p">&lt;</span><span class="k">button</span> <span class="a">id</span><span class="p">=</span><span class="v">"btn"</span><span class="p">&gt;</span>
@@ -560,180 +818,259 @@
 <span class="c">&lt;!-- use it --&gt;</span>
 <span class="p">&lt;</span><span class="k">x-counter</span><span class="p">&gt;&lt;/</span><span class="k">x-counter</span><span class="p">&gt;</span>
 <span class="p">&lt;</span><span class="k">x-counter</span> <span class="a">count</span><span class="p">=</span><span class="v">"10"</span><span class="p">&gt;&lt;/</span><span class="k">x-counter</span><span class="p">&gt;</span></pre>
-      </div>
-      <div class="result-side">
-        <span class="result-label">Result</span>
-        <div class="result-content" id="counter-demo"></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- Features -->
-<section id="features">
-  <div class="wrap reveal">
-    <a class="section-label" href="#features">Features</a>
-    <h2>No API</h2>
-    <p class="lead">The API is markup</p>
-
-    <div class="features" style="grid-template-columns: repeat(2, 1fr)">
-      <div class="feature">
-        <h3>Typed Props</h3>
-        <p>Declare with optional types: <code>count:number="0"</code>. Reflect to attributes. <code>onpropchange</code> callback.</p>
-      </div>
-      <div class="feature">
-        <h3>Scoped Styles</h3>
-        <p>CSS nesting for light DOM, <code>adoptedStyleSheets</code> for shadow. <code>:host</code> works in both.</p>
-      </div>
-      <div class="feature">
-        <h3>Shadow DOM</h3>
-        <p><code>shadowrootmode</code> for encapsulation. Native slots for content projection.</p>
-      </div>
-      <div class="feature">
-        <h3>Lifecycle</h3>
-        <p><code>onconnected</code>, <code>ondisconnected</code>, <code>onpropchange</code>. Script runs once per instance via injection (no <code>eval</code>).</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- Props -->
-<section id="props">
-  <div class="wrap reveal">
-    <a class="section-label" href="#props">Props</a>
-    <h2>Typed props</h2>
-    <p class="lead">Declare attributes with optional types (auto-detected).</p>
-
-    <div class="code-block" style="margin-bottom: 28px">
-      <pre style="padding:16px 20px"><span class="p">&lt;</span><span class="k">x-widget</span> <span class="a">count</span><span class="t">:number</span><span class="p">=</span><span class="v">"0"</span> <span class="a">label</span><span class="t">:string</span><span class="p">=</span><span class="v">"Click me"</span> <span class="a">active</span><span class="t">:boolean</span><span class="p">&gt;</span></pre>
-    </div>
-
-    <div style="border:1px solid var(--border); border-radius: var(--radius); overflow:hidden; background: var(--bg2); box-shadow: 0 1px 2px oklch(0.25 0.02 250 / 0.04), 0 4px 12px oklch(0.25 0.02 250 / 0.03), 0 8px 24px oklch(0.25 0.02 250 / 0.02)">
-      <table class="type-table">
-        <thead>
-          <tr><th>Type</th><th>Coercion</th><th>Default</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>:string</td><td><code>String(v)</code></td><td><code>""</code></td></tr>
-          <tr><td>:number</td><td><code>Number(v)</code></td><td><code>0</code></td></tr>
-          <tr><td>:boolean</td><td><code>true</code> unless <code>"false"</code></td><td><code>false</code></td></tr>
-          <tr><td>:date</td><td><code>new Date(v)</code></td><td><code>null</code></td></tr>
-          <tr><td>:array</td><td><code>JSON.parse(v)</code></td><td><code>[]</code></td></tr>
-          <tr><td>:object</td><td><code>JSON.parse(v)</code></td><td><code>{}</code></td></tr>
-          <tr><td style="color:var(--fg3)">(none)</td><td>auto-detect</td><td>as-is</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-
-<!-- Live Demo: Clock -->
-<section id="lifecycle">
-  <div class="wrap reveal">
-    <a class="section-label" href="#lifecycle">Lifecycle</a>
-    <h2>Connect, disconnect, update</h2>
-    <p class="lead">Script runs once on first connect. Hooks fire on connect, disconnect, prop change.</p>
-
-    <div class="demo-panel">
-      <div class="code-side">
-        <div class="code-bar">
-          <span class="code-dot"></span><span class="code-dot"></span><span class="code-dot"></span>
-          <span class="code-title">clock.html</span>
+          </div>
+          <div class="result-side">
+            <span class="result-label">Result</span>
+            <div class="result-content" id="counter-demo"></div>
+          </div>
         </div>
-        <pre><span class="p">&lt;</span><span class="k">define-element</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="k">x-clock</span><span class="p">&gt;</span>
+
+
+        <div class="features" style="margin-top: 56px; padding: 0 24px">
+          <a class="feature" href="#props">
+            <h3>Props</h3>
+            <p>Typed attributes with coercion. Auto-detected or explicit. Reflected to DOM.</p>
+          </a>
+          <a class="feature" href="#styles">
+            <h3>Styles</h3>
+            <p>Scoped via CSS nesting or shadow DOM. <code>:host</code>, slots, isolation.</p>
+          </a>
+          <a class="feature" href="#script">
+            <h3>Script</h3>
+            <p>Per-instance lifecycle: on connect, on disconnect, on update. No <code>eval</code>.</p>
+          </a>
+          <a class="feature" href="#processors">
+            <h3>Template</h3>
+            <p>Configurable template engine: Alpine, petite-vue, sprae, template-parts.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Props -->
+    <section id="props">
+      <div class="wrap reveal">
+        <a class="section-label" href="#props">Props</a>
+        <h2>Prop types</h2>
+        <p class="lead">Attributes are strings. Optional type suffix defines coercion. No suffix auto-detects type from value. Plain values <code>string</code>, <code>number</code>, <code>boolean</code>, <code>date</code> reflect back to attributes.</p>
+
+        <div class="props-grid">
+
+          <div class="code-block">
+            <div class="code-bar">
+              <span class="code-dot"></span><span class="code-dot"></span><span class="code-dot"></span>
+              <span class="code-title">definition</span>
+            </div>
+            <pre><span class="p">&lt;</span><span class="k">x-widget</span>
+  <span class="a">count</span><span class="t">:number</span><span class="p">=</span><span class="v">"0"</span>
+  <span class="a">label</span><span class="t">:string</span><span class="p">=</span><span class="v">"Click me"</span>
+  <span class="a">active</span><span class="t">:boolean</span>
+<span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">script</span><span class="p">&gt;</span>
+    <span class="n">this</span><span class="p">.</span><span class="a">count</span>    <span class="c">// 0 (number)</span>
+    <span class="n">this</span><span class="p">.</span><span class="a">label</span>    <span class="c">// "Click me" (string)</span>
+    <span class="n">this</span><span class="p">.</span><span class="a">active</span>   <span class="c">// false (boolean)</span>
+    <span class="n">this</span><span class="p">.</span><span class="a">count</span> <span class="p">=</span> <span class="v">5</span> <span class="c">// reflect to attribute</span>
+    <span class="n">this</span><span class="p">.</span><span class="f">getAttribute</span><span class="p">(</span><span class="v">"count"</span><span class="p">)</span> <span class="c">// "5"</span>
+  <span class="p">&lt;/</span><span class="k">script</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="k">x-widget</span><span class="p">&gt;</span></pre>
+          </div>
+
+
+          <div>
+            <div class="table-wrap">
+              <table class="type-table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Coercion</th>
+                    <th>Default</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>:string</td>
+                    <td><code>String(v)</code></td>
+                    <td><code>""</code></td>
+                  </tr>
+                  <tr>
+                    <td>:number</td>
+                    <td><code>Number(v)</code></td>
+                    <td><code>0</code></td>
+                  </tr>
+                  <tr>
+                    <td>:boolean</td>
+                    <td><code>true</code> unless <code>"false"</code></td>
+                    <td><code>false</code></td>
+                  </tr>
+                  <tr>
+                    <td>:date</td>
+                    <td><code>new Date(v)</code></td>
+                    <td><code>null</code></td>
+                  </tr>
+                  <tr>
+                    <td>:array</td>
+                    <td><code>JSON.parse(v)</code></td>
+                    <td><code>[]</code></td>
+                  </tr>
+                  <tr>
+                    <td>:object</td>
+                    <td><code>JSON.parse(v)</code></td>
+                    <td><code>{}</code></td>
+                  </tr>
+                  <tr>
+                    <td style="color:var(--fg3)">(none)</td>
+                    <td>auto-detect</td>
+                    <td>as-is</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- Styles -->
+    <section id="styles">
+      <div class="wrap reveal">
+        <a class="section-label" href="#styles">Styles</a>
+        <h2>Scoped styles</h2>
+        <p class="lead"><code>&lt;style&gt;</code> is scoped automatically. Without shadow DOM &mdash; via CSS nesting, <code>:host</code> rewrites to the tag name. With shadow DOM &mdash; styles are fully isolated, shared across instances via <code>adoptedStyleSheets</code>.</p>
+
+        <div class="proc-tabs">
+          <span class="style-tab active" data-style="light">Light DOM</span>
+          <span class="style-tab" data-style="shadow">Shadow DOM</span>
+        </div>
+        <div class="demo-panel" style="border-top-left-radius:0">
+          <div class="code-side">
+            <pre id="style-code" style="padding:20px;font-family:var(--mono);font-size:12.5px;line-height:1.6"></pre>
+          </div>
+          <div class="result-side">
+            <span class="result-label">Result</span>
+            <div class="result-content" id="styles-demo"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Lifecycle -->
+    <section id="script">
+      <div class="wrap reveal">
+        <a class="section-label" href="#script">Script</a>
+        <h2>Lifecycle events</h2>
+        <p class="lead"><code>&lt;script&gt;</code> runs once per instance at creation. <code>this</code> is the element. Lifecycle callbacks <code>onconnected</code>, <code>ondisconnected</code>, <code>onpropchange</code> – called whenever element is attached or removed from DOM, or any property changes.</p>
+
+        <div class="demo-panel">
+          <div class="code-side">
+            <div class="code-bar">
+              <span class="code-dot"></span><span class="code-dot"></span><span class="code-dot"></span>
+              <span class="code-title">clock.html</span>
+            </div>
+            <pre><span class="p">&lt;</span><span class="k">define-element</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">x-clock</span> <span class="a">time</span><span class="t">:string</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="k">template</span><span class="p">&gt;</span>
       <span class="p">&lt;</span><span class="k">time</span> <span class="a">id</span><span class="p">=</span><span class="v">"t"</span><span class="p">&gt;&lt;/</span><span class="k">time</span><span class="p">&gt;</span>
     <span class="p">&lt;/</span><span class="k">template</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="k">script</span><span class="p">&gt;</span>
-      <span class="k">let</span> <span class="n">id</span><span class="p">,</span> <span class="n">t</span>
-      <span class="k">const</span> <span class="f">tick</span> <span class="p">= () =&gt;</span>
-        <span class="n">t</span><span class="p">.</span><span class="n">textContent</span> <span class="p">=</span>
-          <span class="k">new</span> <span class="f">Date</span><span class="p">().</span><span class="f">toLocaleTimeString</span><span class="p">()</span>
+      <span class="k">let</span> <span class="n">id</span>
+      <span class="c">// template DOM not ready here</span>
+      <span class="k">const</span> <span class="f">tick</span> <span class="p">= () =&gt;</span> <span class="n">this</span><span class="p">.</span><span class="a">time</span> <span class="p">=</span> <span class="k">new</span> <span class="f">Date</span><span class="p">().</span><span class="f">toLocaleTimeString</span><span class="p">()</span>
+
+      <span class="c">// added to DOM — template is ready</span>
       <span class="n">this</span><span class="p">.</span><span class="a">onconnected</span> <span class="p">= () =&gt; {</span>
         <span class="n">t</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="f">querySelector</span><span class="p">(</span><span class="v">'#t'</span><span class="p">)</span>
         <span class="f">tick</span><span class="p">();</span> <span class="n">id</span> <span class="p">=</span> <span class="f">setInterval</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="v">1000</span><span class="p">)</span>
       <span class="p">}</span>
-      <span class="n">this</span><span class="p">.</span><span class="a">ondisconnected</span> <span class="p">= () =&gt;</span>
-        <span class="f">clearInterval</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+
+      <span class="c">// removed from DOM</span>
+      <span class="n">this</span><span class="p">.</span><span class="a">ondisconnected</span> <span class="p">= () =&gt;</span> <span class="f">clearInterval</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+
+      <span class="c">// property changed → update DOM</span>
+      <span class="n">this</span><span class="p">.</span><span class="a">onpropchange</span> <span class="p">= () =&gt;</span>
+        <span class="n">t</span><span class="p">.</span><span class="n">textContent</span> <span class="p">=</span> <span class="n">this</span><span class="p">.</span><span class="a">time</span>
     <span class="p">&lt;/</span><span class="k">script</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="k">style</span><span class="p">&gt;</span>
-      <span class="a">:host</span> <span class="p">{</span> <span class="n">font-family</span><span class="p">:</span> <span class="v">monospace</span> <span class="p">}</span>
-    <span class="p">&lt;/</span><span class="k">style</span><span class="p">&gt;</span>
   <span class="p">&lt;/</span><span class="k">x-clock</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="k">define-element</span><span class="p">&gt;</span></pre>
+          </div>
+          <div class="result-side">
+            <span class="result-label">Result</span>
+            <div class="result-content" id="clock-demo"></div>
+          </div>
+        </div>
       </div>
-      <div class="result-side">
-        <span class="result-label">Result</span>
-        <div class="result-content" id="clock-demo"></div>
+    </section>
+
+
+    <!-- Processors -->
+    <section id="processors">
+      <div class="wrap reveal">
+        <a class="section-label" href="#processors">Template</a>
+        <h2>Template engine</h2>
+        <p class="lead">Use any framework instead of wiring DOM manually. Set <code>DE.processor</code> to configure any template engine&nbsp;&mdash; reactive&nbsp;bindings replace querySelector&nbsp;boilerplate.</p>
+
+        <div class="proc-tabs">
+          <span class="proc-tab active" data-proc="sprae">
+            <span style="font-size:16px;line-height:1;font-weight:700;color:oklch(0.55 0.18 255)">&#8756;</span>
+            sprae
+          </span>
+          <span class="proc-tab" data-proc="alpine">
+            <svg viewBox="0 0 200 103" width="16" height="14">
+              <polygon fill="#77C1D2" points="149.5 10.3 189.4 50 149.5 89.7 109.6 50" />
+              <polygon fill="#2D3441" points="49.8 10.3 132.5 92.6 52.8 92.6 10 50" />
+            </svg>
+            Alpine
+          </span>
+          <span class="proc-tab" data-proc="petite-vue">
+            <svg viewBox="0 0 128 128" width="14" height="14">
+              <path fill="#42b883" d="M78.8,10L64,35.4L49.2,10H0l64,110l64-110H78.8z" />
+              <path fill="#35495e" d="M78.8,10L64,35.4L49.2,10H25.6L64,76l38.4-66H78.8z" />
+            </svg>
+            petite-vue
+          </span>
+          <span class="proc-tab" data-proc="template-parts">
+            <img src="https://www.w3.org/favicon.ico" width="14" height="14" alt="W3C">
+            template-parts
+          </span>
+        </div>
+        <div class="code-block" style="border-top-left-radius:0">
+          <pre id="proc-code" style="padding:20px;font-family:var(--mono);font-size:13px;line-height:1.65"></pre>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
 
-<!-- Processors -->
-<section id="processors">
-  <div class="wrap reveal">
-    <a class="section-label" href="#processors">Templating</a>
-    <h2>Template engine</h2>
-    <p class="lead">Works with sprae, Alpine, petite-vue, template-parts.</p>
-
-    <div class="proc-tabs">
-      <span class="proc-tab active" data-proc="sprae">
-        <span style="font-size:16px;line-height:1;font-weight:700;color:oklch(0.55 0.18 255)">&#8756;</span>
-        sprae
-      </span>
-      <span class="proc-tab" data-proc="alpine">
-        <svg viewBox="0 0 200 103" width="16" height="14"><polygon fill="#77C1D2" points="149.5 10.3 189.4 50 149.5 89.7 109.6 50"/><polygon fill="#2D3441" points="49.8 10.3 132.5 92.6 52.8 92.6 10 50"/></svg>
-        Alpine
-      </span>
-      <span class="proc-tab" data-proc="petite-vue">
-        <svg viewBox="0 0 128 128" width="14" height="14"><path fill="#42b883" d="M78.8,10L64,35.4L49.2,10H0l64,110l64-110H78.8z"/><path fill="#35495e" d="M78.8,10L64,35.4L49.2,10H25.6L64,76l38.4-66H78.8z"/></svg>
-        petite-vue
-      </span>
-      <span class="proc-tab" data-proc="template-parts">
-        <img src="https://www.w3.org/favicon.ico" width="14" height="14" alt="W3C">
-        template-parts
-      </span>
-    </div>
-    <div class="code-block" style="border-top-left-radius:0">
-      <pre id="proc-code" style="padding:20px;font-family:var(--mono);font-size:13px;line-height:1.65"></pre>
-    </div>
-  </div>
-</section>
+    <!-- Why -->
+    <section id="why">
+      <div class="wrap reveal">
+        <a class="section-label" href="#why">Why</a>
+        <h2>Why this exists</h2>
+        <p class="lead" style="max-width: 640px">The <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md">W3C declarative proposal</a> has <a href="https://github.com/w3c/webcomponents-cg/issues/81">stalled for years</a> over template syntax disagreements. The <a href="https://github.com/dy/define-element/blob/main/docs/alternatives.md">polyfill attempts</a> are mostly dead. So you either write boilerplate or avoid custom elements.</p>
+        <p class="lead" style="max-width: 640px"><code>&lt;define-element&gt;</code> fills the gap: include the script and write custom-elements as HTML. It doesn't impose template engine or framework – you can use your favorite one. It just enables organic web-components.</p>
+        <p style="font-size:15px; color: var(--fg2); line-height: 1.7; max-width: 640px">It's only a ~1Kb (200 loc). If the W3C proposal ships natively, this becomes unnecessary.</p>
+        <p style="font-size:13px; margin-top:20px"><a href="https://github.com/dy/define-element#readme">Read the docs &rarr;</a></p>
+      </div>
+    </section>
 
 
-<!-- Why -->
-<section id="why">
-  <div class="wrap reveal">
-    <a class="section-label" href="#why">Why</a>
-    <h2>Why this exists</h2>
-    <p class="lead" style="max-width: 620px">The <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md" style="color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft);transition:border-color 0.2s" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='var(--accent-soft)'">W3C Declarative Custom Elements proposal</a> has stalled for years. JS-side solutions require build tools and class boilerplate. The declarative CE space is a graveyard.</p>
-    <p class="lead" style="max-width: 620px">The gap: no lightweight way to define a custom element as HTML. Paste a <code>&lt;define-element&gt;</code> block into any page, CMS, or markdown and it works.</p>
-    <p style="font-size:15px; color: var(--fg2); line-height: 1.7; max-width: 620px">This ~200-line polyfill is evidence that the proposal is implementable and useful. Ship it natively.</p>
-    <p style="font-size:13px; margin-top:20px"><a href="https://github.com/dy/define-element#readme" style="color:var(--accent);text-decoration:none;transition:color 0.2s" onmouseenter="this.style.color='var(--accent2)'" onmouseleave="this.style.color='var(--accent)'">Read the docs &rarr;</a></p>
-  </div>
-</section>
+    <!-- Footer -->
+    <footer>
+      <div class="wrap">
+        <a class="om" href="https://github.com/krishnized/license">&#x0950;</a>
+      </div>
+    </footer>
 
 
-<!-- Footer -->
-<footer>
-  <div class="wrap">
-    <a class="om" href="https://github.com/krishnized/license">&#x0950;</a>
-  </div>
-</footer>
+    <!-- Load define-element and create live demos -->
+    <script type="module">
+      import './define-element.js'
 
-
-<!-- Load define-element and create live demos -->
-<script type="module">
-  import './define-element.js'
-
-  // Counter demo
-  document.getElementById('counter-demo').innerHTML = `
+      // Counter demo
+      document.getElementById('counter-demo').innerHTML = `
     <define-element>
       <x-demo-counter count:number="0">
         <template>
@@ -767,8 +1104,8 @@
     <x-demo-counter count="10"></x-demo-counter>
   `
 
-  // Clock demo
-  document.getElementById('clock-demo').innerHTML = `
+      // Clock demo
+      document.getElementById('clock-demo').innerHTML = `
     <define-element>
       <x-demo-clock>
         <template>
@@ -795,9 +1132,117 @@
     <x-demo-clock></x-demo-clock>
   `
 
-  // Processor tab switching
-  const procExamples = {
-    sprae: `<span class="k">import</span> <span class="n">sprae</span> <span class="k">from</span> <span class="v">'sprae'</span>
+      // Style tab switching
+      const styleExamples = {
+        light: {
+          code: `<span class="p">&lt;</span><span class="k">x-note</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">template</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="k">strong</span><span class="p">&gt;</span>Note<span class="p">&lt;/</span><span class="k">strong</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="k">p</span><span class="p">&gt;</span>Scoped via CSS nesting.<span class="p">&lt;/</span><span class="k">p</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="k">template</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">style</span><span class="p">&gt;</span>
+    <span class="k">:host</span> <span class="p">{</span>
+      <span class="a">display</span><span class="p">:</span> <span class="v">block</span><span class="p">;</span>
+      <span class="a">padding</span><span class="p">:</span> <span class="v">16px 20px</span><span class="p">;</span>
+      <span class="a">border-left</span><span class="p">:</span> <span class="v">3px solid teal</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">strong</span> <span class="p">{</span> <span class="a">color</span><span class="p">:</span> <span class="v">teal</span><span class="p">;</span> <span class="p">}</span>
+  <span class="p">&lt;/</span><span class="k">style</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="k">x-note</span><span class="p">&gt;</span>
+
+<span class="c">&lt;!-- :host → x-note, styles nested under tag --&gt;</span>
+<span class="c">&lt;!-- global CSS still cascades in --&gt;</span>`,
+          demo: `
+    <define-element>
+      <x-demo-note>
+        <template>
+          <strong>Note</strong>
+          <p>Scoped via CSS nesting.</p>
+        </template>
+        <style>
+          :host {
+            display: block;
+            padding: 16px 20px;
+            border-left: 3px solid teal;
+            font-family: 'Inter', system-ui, sans-serif;
+            align-self: stretch;
+          }
+          strong { color: teal; font-size: 13px; letter-spacing: 0.02em; text-transform: uppercase; }
+          p { margin: 4px 0 0; color: #555; font-size: 14px; line-height: 1.5; }
+        </style>
+      </x-demo-note>
+    </define-element>
+    <x-demo-note></x-demo-note>`
+        },
+        shadow: {
+          code: `<span class="p">&lt;</span><span class="k">x-note</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">template</span> <span class="a">shadowrootmode</span><span class="p">=</span><span class="v">"open"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="k">strong</span><span class="p">&gt;&lt;</span><span class="k">slot</span> <span class="a">name</span><span class="p">=</span><span class="v">"title"</span><span class="p">&gt;&lt;/</span><span class="k">slot</span><span class="p">&gt;&lt;/</span><span class="k">strong</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="k">slot</span><span class="p">&gt;&lt;/</span><span class="k">slot</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="k">template</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">style</span><span class="p">&gt;</span>
+    <span class="k">:host</span> <span class="p">{</span>
+      <span class="a">display</span><span class="p">:</span> <span class="v">block</span><span class="p">;</span>
+      <span class="a">padding</span><span class="p">:</span> <span class="v">16px 24px</span><span class="p">;</span>
+      <span class="a">border-left</span><span class="p">:</span> <span class="v">3px solid teal</span><span class="p">;</span>
+      <span class="a">background</span><span class="p">:</span> <span class="v">#f0f6f6</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">strong</span> <span class="p">{</span> <span class="a">color</span><span class="p">:</span> <span class="v">teal</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">::slotted</span><span class="p">(</span><span class="k">p</span><span class="p">) {</span> <span class="a">color</span><span class="p">:</span> <span class="v">#555</span><span class="p">;</span> <span class="p">}</span>
+  <span class="p">&lt;/</span><span class="k">style</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="k">x-note</span><span class="p">&gt;</span>
+
+<span class="c">&lt;!-- usage: --&gt;</span>
+<span class="c">&lt;!-- &lt;x-note&gt; --&gt;</span>
+<span class="c">&lt;!--   &lt;span slot="title"&gt;Note&lt;/span&gt; --&gt;</span>
+<span class="c">&lt;!--   &lt;p&gt;Isolated via shadow DOM.&lt;/p&gt; --&gt;</span>
+<span class="c">&lt;!-- &lt;/x-note&gt; --&gt;</span>`,
+          demo: `
+    <define-element>
+      <x-demo-note-shadow>
+        <template shadowrootmode="open">
+          <strong><slot name="title"></slot></strong>
+          <slot></slot>
+        </template>
+        <style>
+          :host {
+            display: block;
+            padding: 16px 24px;
+            border-left: 3px solid teal;
+            background: #f0f6f6;
+            font-family: 'Inter', system-ui, sans-serif;
+            align-self: stretch;
+          }
+          strong { color: teal; font-size: 13px; letter-spacing: 0.02em; text-transform: uppercase; }
+          ::slotted(p) { color: #555; font-size: 14px; line-height: 1.5; margin: 4px 0 0; }
+        </style>
+      </x-demo-note-shadow>
+    </define-element>
+    <x-demo-note-shadow>
+      <span slot="title">Note</span>
+      <p>Isolated via shadow DOM.</p>
+    </x-demo-note-shadow>`
+        }
+      }
+
+      const styleCode = document.getElementById('style-code')
+      const stylesDemo = document.getElementById('styles-demo')
+      function showStyleTab(key) {
+        styleCode.innerHTML = styleExamples[key].code
+        stylesDemo.innerHTML = styleExamples[key].demo
+      }
+      showStyleTab('light')
+      document.querySelectorAll('.style-tab').forEach(tab => {
+        tab.onclick = () => {
+          document.querySelector('.style-tab.active').classList.remove('active')
+          tab.classList.add('active')
+          showStyleTab(tab.dataset.style)
+        }
+      })
+
+      // Processor tab switching
+      const procExamples = {
+        sprae: `<span class="k">import</span> <span class="n">sprae</span> <span class="k">from</span> <span class="v">'sprae'</span>
 <span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
 <span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
@@ -812,7 +1257,7 @@
 <span class="c">//   &lt;/template&gt;</span>
 <span class="c">// &lt;/x-counter&gt;</span>`,
 
-    alpine: `<span class="k">import</span> <span class="n">Alpine</span> <span class="k">from</span> <span class="v">'alpinejs'</span>
+        alpine: `<span class="k">import</span> <span class="n">Alpine</span> <span class="k">from</span> <span class="v">'alpinejs'</span>
 <span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
 <span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
@@ -829,7 +1274,7 @@
 <span class="c">//   &lt;/template&gt;</span>
 <span class="c">// &lt;/x-counter&gt;</span>`,
 
-    'petite-vue': `<span class="k">import</span> <span class="p">{</span> <span class="n">createApp</span><span class="p">,</span> <span class="n">reactive</span> <span class="p">}</span> <span class="k">from</span> <span class="v">'petite-vue'</span>
+        'petite-vue': `<span class="k">import</span> <span class="p">{</span> <span class="n">createApp</span><span class="p">,</span> <span class="n">reactive</span> <span class="p">}</span> <span class="k">from</span> <span class="v">'petite-vue'</span>
 <span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
 <span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
@@ -845,7 +1290,7 @@
 <span class="c">//   &lt;/template&gt;</span>
 <span class="c">// &lt;/x-counter&gt;</span>`,
 
-    'template-parts': `<span class="k">import</span> <span class="p">{</span> <span class="n">TemplateInstance</span> <span class="p">}</span> <span class="k">from</span> <span class="v">'@github/template-parts'</span>
+        'template-parts': `<span class="k">import</span> <span class="p">{</span> <span class="n">TemplateInstance</span> <span class="p">}</span> <span class="k">from</span> <span class="v">'@github/template-parts'</span>
 <span class="k">let</span> <span class="n">DE</span> <span class="p">=</span> <span class="n">customElements</span><span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="v">'define-element'</span><span class="p">)</span>
 
 <span class="n">DE</span><span class="p">.</span><span class="a">processor</span> <span class="p">= (</span><span class="n">root</span><span class="p">,</span> <span class="n">state</span><span class="p">) => {</span>
@@ -855,37 +1300,38 @@
 <span class="c">// &lt;x-greeting name:string="world"&gt;</span>
 <span class="c">//   &lt;template&gt;Hello, {{name}}!&lt;/template&gt;</span>
 <span class="c">// &lt;/x-greeting&gt;</span>`
-  }
+      }
 
-  const procCode = document.getElementById('proc-code')
-  procCode.innerHTML = procExamples.sprae
-  document.querySelectorAll('.proc-tab').forEach(tab => {
-    tab.onclick = () => {
-      document.querySelector('.proc-tab.active').classList.remove('active')
-      tab.classList.add('active')
-      procCode.innerHTML = procExamples[tab.dataset.proc]
-    }
-  })
+      const procCode = document.getElementById('proc-code')
+      procCode.innerHTML = procExamples.sprae
+      document.querySelectorAll('.proc-tab').forEach(tab => {
+        tab.onclick = () => {
+          document.querySelector('.proc-tab.active').classList.remove('active')
+          tab.classList.add('active')
+          procCode.innerHTML = procExamples[tab.dataset.proc]
+        }
+      })
 
-  // Scroll reveal with stagger
-  let delay = 0
-  const obs = new IntersectionObserver(entries => {
-    for (let e of entries) if (e.isIntersecting) {
-      e.target.style.transitionDelay = delay + 'ms'
-      delay += 80
-      e.target.classList.add('visible')
-      obs.unobserve(e.target)
-    }
-  }, { threshold: 0.1, rootMargin: '40px' })
-  document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
+      // Scroll reveal with stagger
+      let delay = 0
+      const obs = new IntersectionObserver(entries => {
+        for (let e of entries) if (e.isIntersecting) {
+          e.target.style.transitionDelay = delay + 'ms'
+          delay += 80
+          e.target.classList.add('visible')
+          obs.unobserve(e.target)
+        }
+      }, { threshold: 0.1, rootMargin: '40px' })
+      document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
 
-  // Fetch version from npm
-  fetch('https://registry.npmjs.org/define-element/latest').then(r => r.json()).then(d => {
-    let a = document.getElementById('ver')
-    a.textContent = 'v' + d.version
-    a.href = 'https://github.com/dy/define-element/releases/tag/v' + d.version
-  }).catch(() => {})
-</script>
+      // Fetch version from npm
+      fetch('https://registry.npmjs.org/define-element/latest').then(r => r.json()).then(d => {
+        let a = document.getElementById('ver')
+        a.textContent = 'v' + d.version
+        a.href = 'https://github.com/dy/define-element/releases/tag/v' + d.version
+      }).catch(() => { })
+    </script>
 
-</body>
+  </body>
+
 </html>

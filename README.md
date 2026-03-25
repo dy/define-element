@@ -52,7 +52,7 @@ Multiple definitions per block. After processing, `<define-element>` removes its
 
 ## Props
 
-Declared as attributes with optional types:
+Attributes are strings. Optional type suffix defines coercion. No suffix auto-detects type from value. Plain values (`string`, `number`, `boolean`, `date`) reflect back to attributes.
 
 ```html
 <x-widget count:number="0" label:string="Click me" active:boolean>
@@ -73,7 +73,7 @@ Primitive props reflect to attributes and vice versa. Array/object props are pro
 
 ## Template & Script
 
-`<script>` runs once per instance before render — define methods, state, and callbacks. `<template>` is then cloned and rendered (by the processor or literally). `onconnected` fires after render — use it for DOM access. No `eval`; scripts run via element injection.
+`<script>` runs once per instance at creation. `this` is the element. `<template>` is then cloned and rendered (by the processor or literally). Lifecycle callbacks `onconnected`, `ondisconnected`, `onpropchange` fire when the element is attached, removed, or any property changes. No `eval`; scripts run via element injection.
 
 ```html
 <define-element>
@@ -112,7 +112,7 @@ Script runs once before render — like a class body. `onconnected` fires after 
 
 ## Style
 
-`<style>` is scoped automatically. With shadow DOM, styles use [adoptedStyleSheets](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/adoptedStyleSheets) (shared across instances). Without shadow DOM, styles are scoped via [CSS nesting](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting) under the element tag, and `:host` is rewritten to the tag name.
+`<style>` is scoped automatically. Without shadow DOM — via [CSS nesting](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting), `:host` rewrites to the tag name. With shadow DOM — styles are fully isolated, shared across instances via [adoptedStyleSheets](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/adoptedStyleSheets).
 
 
 ## Shadow DOM & Slots
@@ -157,7 +157,7 @@ Add `shadowrootmode` to the template for encapsulation. Slots work natively:
 
 ## Processor
 
-Pluggable template engine. Without a processor, templates are static HTML (cloned automatically). With a processor, the processor owns template mounting and reactivity.
+Without a processor, templates are static HTML — cloned automatically, you wire DOM by hand. Set `DE.processor` to plug in any template engine; reactive bindings replace querySelector boilerplate.
 
 ```js
 processor(root, state) => void
@@ -236,11 +236,11 @@ This is not server-side rendering in the framework sense — there is no server 
 
 ## Why
 
-The [W3C Declarative Custom Elements proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md) has stalled for years. JS-side solutions (Lit, FAST, Stencil) require build tools and class boilerplate. The declarative CE space is a [graveyard](./docs/alternatives.md).
+The [W3C Declarative Custom Elements proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md) has [stalled for years](https://github.com/w3c/webcomponents-cg/issues/81) over template syntax disagreements. The [polyfill attempts](./docs/alternatives.md) are mostly dead. So you either write boilerplate or avoid custom elements.
 
-The gap: no lightweight way to define a custom element as HTML — components as content, not as code. Paste a `<define-element>` block into any page, CMS, or markdown file and it works. No npm, no import maps, no build step. One `<script>` tag.
+`<define-element>` fills the gap: include the script and write custom elements as HTML. It doesn't impose a template engine or framework — use your favorite one, or just wire DOM by hand.
 
-This ~200-line reference implementation is evidence that the W3C proposal is implementable and useful. Ship it natively.
+This ~200-line reference implementation is evidence that the W3C proposal is implementable and useful. If it ships natively, this becomes unnecessary.
 
 
 ## Alternatives
