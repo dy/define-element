@@ -2,7 +2,7 @@
 
 A custom element to define custom elements.
 
-* Implements the [Declarative Custom Elements](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md) concept — define web components in HTML
+* [Declarative Custom Elements](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md) concept implementation
 * Typed props, scoped styles, shadow DOM, slots, lifecycle events
 * Web components for [alpine](https://alpinejs.dev), [petite-vue](https://github.com/vuejs/petite-vue), [template-parts](https://github.com/nicegist/template-parts), [sprae](https://github.com/dy/sprae), and others
 
