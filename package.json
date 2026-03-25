@@ -4,9 +4,15 @@
   "description": "A custom element to define custom elements",
   "type": "module",
   "main": "define-element.js",
+  "module": "define-element.js",
   "unpkg": "define-element.js",
+  "types": "define-element.d.ts",
+  "exports": {
+    ".": "./define-element.js"
+  },
   "files": [
-    "define-element.js"
+    "define-element.js",
+    "define-element.d.ts"
   ],
   "sideEffects": true,
   "scripts": {

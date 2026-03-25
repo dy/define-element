@@ -551,6 +551,57 @@ test('shadow: shadowrootmode open', async () => {
 })
 
 
+test('shadow: shadowrootmode closed', async () => {
+  let el = h(`
+    <define-element>
+      <x-closed1>
+        <template shadowrootmode="closed"><span>secret</span></template>
+      </x-closed1>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-closed1')
+  document.body.appendChild(inst)
+
+  // Shadow root not accessible via .shadowRoot (closed)
+  is(inst.shadowRoot, null)
+
+  // But content is rendered — accessible via internal _de_root
+  ok(inst._de_root !== inst, 'has closed shadow root')
+  ok(inst._de_root.querySelector('span'))
+  is(inst._de_root.querySelector('span').textContent, 'secret')
+  is(inst.innerHTML, '') // light DOM empty
+  inst.remove()
+  el.remove()
+})
+
+
+test('shadow: closed mode with script', async () => {
+  let el = h(`
+    <define-element>
+      <x-closed2 val:number="0">
+        <template shadowrootmode="closed"><output id="out">0</output></template>
+        <script>
+          this.onconnected = () => {
+            this._de_root.querySelector('#out').textContent = this.val
+          }
+        </script>
+      </x-closed2>
+    </define-element>
+  `)
+  await tick()
+
+  let inst = document.createElement('x-closed2')
+  inst.setAttribute('val', '42')
+  document.body.appendChild(inst)
+  is(inst._de_root.querySelector('#out').textContent, '42')
+  is(inst.shadowRoot, null) // still closed
+  inst.remove()
+  el.remove()
+})
+
+
 test('shadow: style in shadow DOM', async () => {
   let el = h(`
     <define-element>
@@ -1979,7 +2030,7 @@ test('late-defined: CE used before definition, cloned after removal', async () =
   await tick()
 
   // Clone must be a proper CE instance — constructor should have run
-  ok(clone1._de, 'clone should be initialized by connectedCallback')
+  ok(clone1._de_inited, 'clone should be initialized by connectedCallback')
   is(clone1.querySelector('b')?.textContent, 'content', 'clone should have template content')
 
   wrapper.remove()
@@ -2045,7 +2096,7 @@ test('prop: array setter should not serialize to attribute', async () => {
 
 // Issue: CE with :if is disconnected before processor is set.
 // When processor is set, _noProc skips disconnected elements.
-// When :if re-connects, connectedCallback skips because _de is true.
+// When :if re-connects, connectedCallback skips because _de_inited is true.
 // Result: element stays empty.
 test('reconnect: CE renders after disconnect+reconnect when processor set late', async () => {
   h(`<define-element>
@@ -2059,7 +2110,7 @@ test('reconnect: CE renders after disconnect+reconnect when processor set late',
   document.body.appendChild(inst)
   await tick()
 
-  ok(inst._de, 'initialized')
+  ok(inst._de_inited, 'initialized')
   ok(inst.querySelector('b'), 'has template content (no-proc clone)')
 
   // Simulate :if removing element before processor is set

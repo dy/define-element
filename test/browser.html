@@ -31,7 +31,7 @@
 
   test('late-defined CE: original element upgraded', () => {
     let orig = document.querySelector('#host x-late-browser')
-    is(orig?._de, true, 'original should have _de=true')
+    is(orig?._de_inited, true, 'original should have _de_inited=true')
   })
 
   test('late-defined CE: clone of removed element works', async () => {
@@ -42,7 +42,7 @@
     document.body.appendChild(clone)
     await tick(2)
 
-    ok(clone._de, 'clone should be initialized')
+    ok(clone._de_inited, 'clone should be initialized')
     is(clone.querySelector('b')?.textContent, 'content', 'clone should have template content')
     clone.remove()
   })

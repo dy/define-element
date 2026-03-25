@@ -11,6 +11,9 @@
  * </define-element>
  */
 
+// Prevent flash of <define-element> blocks before they are processed and removed
+document.head.appendChild(document.createElement('style')).textContent = 'define-element{display:none}'
+
 const types = {
   string: v => v == null ? '' : String(v),
   number: v => v == null ? 0 : Number(v),
@@ -59,7 +62,7 @@ function define(el) {
   let shadowMode = tpl?.getAttribute('shadowrootmode') || null
   if (shadowMode) tpl.removeAttribute('shadowrootmode')
 
-  // Handle browser-consumed declarative shadow DOM
+  // Recover browser-consumed declarative shadow DOM (open mode only; closed DSD is inaccessible by design)
   if (!tpl && el.shadowRoot) {
     shadowMode = el.shadowRoot.mode
     tpl = document.createElement('template')
@@ -82,17 +85,23 @@ function define(el) {
 
     constructor() {
       super()
-      this._de = false
+      this._de_inited = false
       this.props = {}
       for (let p of propDefs) this.props[p.name] = p.default
     }
 
     connectedCallback() {
-      if (!this._de) {
-        this._de = true
+      if (!this._de_inited) {
+        this._de_inited = true
 
         let root = this
-        if (shadowMode) root = this.shadowRoot || this.attachShadow({ mode: shadowMode })
+        if (shadowMode) {
+          root = this.shadowRoot
+          if (!root) {
+            try { root = this.attachShadow({ mode: shadowMode }) }
+            catch { this.onconnected?.(); return }
+          }
+        }
         this._de_root = root
 
         if (styleText) {
@@ -113,7 +122,7 @@ function define(el) {
         if (scriptText) runScript(scriptText, this)
 
         this._render()
-      } else if (_processor && !this._de_proc) {
+      } else if (_processor && !this._de_processed) {
         // reconnected after processor became available
         this._render()
       }
@@ -133,7 +142,7 @@ function define(el) {
       }
 
       if (_processor) {
-        this._de_proc = true
+        this._de_processed = true
         _noProc.delete(this)
         let saved = !shadowMode ? [...this.attributes].filter(a => !(a.name in propMap)).map(a => [a.name, a.value]) : []
         for (let [n] of saved) this.removeAttribute(n)
@@ -195,9 +204,9 @@ function runScript(text, thisArg) {
   let s = document.createElement('script')
   let stripped = text.replace(/\/\/.*|\/\*[\s\S]*?\*\/|(['"`])(?:(?!\1)[^\\]|\\.)*\1/g, '')
   let wrapper = /\bawait\b/.test(stripped)
-    ? `(async function(){${text}}).call(document.currentScript._de_this)`
-    : `(function(){${text}}).call(document.currentScript._de_this)`
-  s._de_this = thisArg
+    ? `(async function(){${text}}).call(document.currentScript._de_host)`
+    : `(function(){${text}}).call(document.currentScript._de_host)`
+  s._de_host = thisArg
   s.textContent = wrapper
   document.head.appendChild(s)
   s.remove()
