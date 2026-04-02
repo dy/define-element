@@ -843,19 +843,19 @@
         <div class="features" style="margin-top: 56px; padding: 0 20px">
           <a class="feature" href="#props">
             <h3>Props</h3>
-            <p>Typed attributes with coercion. Auto-detected or explicit. Reflected to DOM.</p>
+            <p>Declare types inline — <code>count:number="0"</code>. Auto-detected when untyped. Changes reflect back to attributes.</p>
           </a>
           <a class="feature" href="#styles">
             <h3>Styles</h3>
-            <p>Scoped via CSS nesting or shadow DOM. <code>:host</code>, slots, isolation.</p>
+            <p>Scoped automatically. Light DOM uses CSS nesting, shadow DOM isolates fully. <code>:host</code> works in both.</p>
           </a>
           <a class="feature" href="#script">
             <h3>Script</h3>
-            <p>Per-instance lifecycle: on connect, on disconnect, on update. No <code>eval</code>.</p>
+            <p><code>this</code> is the element. Runs once per instance. Connect, disconnect, prop change callbacks.</p>
           </a>
           <a class="feature" href="#processors">
             <h3>Template</h3>
-            <p>Configurable template engine: Alpine, petite-vue, sprae, template-parts.</p>
+            <p>Plug in any template engine — sprae, Alpine, petite-vue, template-parts — or wire DOM yourself.</p>
           </a>
         </div>
       </div>
@@ -867,7 +867,7 @@
       <div class="wrap reveal">
         <a class="section-label" href="#props">Props</a>
         <h2>Prop types</h2>
-        <p class="lead">Attributes are strings. Optional type suffix defines coercion. No suffix auto-detects type from value. Plain values <code>string</code>, <code>number</code>, <code>boolean</code>, <code>date</code> reflect back to attributes.</p>
+        <p class="lead">Attributes are strings, so a type suffix like <code>:number</code> coerces the value for you. Skip the suffix and the type is guessed from the value. Primitives reflect back to attributes; <code>array</code> and <code>object</code> don't.</p>
 
         <div class="props-grid">
 
@@ -953,7 +953,7 @@
       <div class="wrap reveal">
         <a class="section-label" href="#styles">Styles</a>
         <h2>Scoped styles</h2>
-        <p class="lead"><code>&lt;style&gt;</code> is scoped automatically. Without shadow DOM &mdash; via CSS nesting, <code>:host</code> rewrites to the tag name. With shadow DOM &mdash; styles are fully isolated, shared across instances via <code>adoptedStyleSheets</code>.</p>
+        <p class="lead"><code>&lt;style&gt;</code> is scoped automatically. Without shadow DOM, <code>:host</code> rewrites to the tag name and styles nest under it. With shadow DOM, styles are fully isolated and shared across instances.</p>
 
         <div class="proc-tabs">
           <span class="style-tab active" data-style="light">Light DOM</span>
@@ -977,7 +977,7 @@
       <div class="wrap reveal">
         <a class="section-label" href="#script">Script</a>
         <h2>Lifecycle events</h2>
-        <p class="lead"><code>&lt;script&gt;</code> runs once per instance at creation. <code>this</code> is the element. Lifecycle callbacks <code>onconnected</code>, <code>ondisconnected</code>, <code>onpropchange</code> – called whenever element is attached or removed from DOM, or any property changes.</p>
+        <p class="lead"><code>&lt;script&gt;</code> runs once per instance at creation. <code>this</code> is the element. <code>onconnected</code> and <code>ondisconnected</code> fire on attach/detach; <code>onpropchange</code> fires when a property changes.</p>
 
         <div class="demo-panel">
           <div class="code-side">
@@ -1064,7 +1064,7 @@
         <a class="section-label" href="#why">Why</a>
         <h2>Why this exists</h2>
         <p class="lead" style="max-width: 640px">The <a href="https://github.com/WICG/webcomponents/blob/gh-pages/proposals/Declarative-Custom-Elements-Strawman.md">W3C declarative proposal</a> has <a href="https://github.com/w3c/webcomponents-cg/issues/81">stalled for years</a> over template syntax disagreements. The <a href="https://github.com/dy/define-element/blob/main/docs/alternatives.md">polyfill attempts</a> are mostly dead. So you either write boilerplate or avoid custom elements.</p>
-        <p class="lead" style="max-width: 640px"><code>&lt;define-element&gt;</code> fills the gap: include the script and write custom-elements as HTML. It doesn't impose template engine or framework – you can use your favorite one. It just enables organic web-components.</p>
+        <p class="lead" style="max-width: 640px"><code>&lt;define-element&gt;</code> fills the gap: include the script and write components as HTML. Pick any template engine or skip it entirely.</p>
         <p style="font-size:15px; color: var(--fg2); line-height: 1.7; max-width: 640px">It's ~2KB (200 loc). If the W3C proposal ships natively, this becomes unnecessary.</p>
         <p style="font-size:13px; margin-top:20px"><a href="https://github.com/dy/define-element#readme">Read the docs &rarr;</a></p>
       </div>
