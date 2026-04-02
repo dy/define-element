@@ -1,6 +1,6 @@
 {
   "name": "define-element",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "A custom element to define custom elements",
   "type": "module",
   "main": "define-element.js",
