@@ -25,9 +25,9 @@ const types = {
 
 const serialize = (v, type) =>
   v == null ? null :
-  type === 'boolean' ? (v ? '' : null) :
-  type === 'date' ? v.toISOString?.() ?? String(v) :
-  String(v)
+    type === 'boolean' ? (v ? '' : null) :
+      type === 'date' ? v.toISOString?.() ?? String(v) :
+        String(v)
 
 const auto = v => v == null ? v : !isNaN(v) && v !== '' ? Number(v) : v === 'true' ? true : v === 'false' ? false : v
 
@@ -130,6 +130,7 @@ function define(el) {
       this.onconnected?.()
     }
 
+    // NOTE: not inlineable — called from connectedCallback and processor setter
     _render() {
       let root = this._de_root
 
@@ -150,6 +151,7 @@ function define(el) {
         for (let [n, v] of saved) this.setAttribute(n, v)
       } else {
         if (tpl && !root.firstChild) root.appendChild(tpl.content.cloneNode(true))
+        // NOTE: _noProc tracks elements connected before processor — processor setter retroactively processes them
         _noProc.add(this)
       }
     }
@@ -178,6 +180,7 @@ function define(el) {
       get() { return this.props[p.name] },
       set(v) {
         let val = p.coerce(v)
+        // NOTE: props is canonical store — element has getters defined
         this.props[p.name] = val
         this.onpropchange?.(p.name, val)
         if (typeof val === 'function' || p.type === 'array' || p.type === 'object') return
@@ -222,6 +225,9 @@ function scopeCSS(css, tag) {
 class DefineElement extends HTMLElement {
   connectedCallback() {
     _pending.add(this)
+    // NOTE: children exist (upgrade, innerHTML, DOM API) → microtask (fast).
+    // No children → parser fired connectedCallback at opening tag, children not yet parsed → setTimeout (wait for parser).
+    // _init is separate method because processor setter also calls it on pending elements.
     if (this.childElementCount) queueMicrotask(() => this._init())
     else setTimeout(() => this._init())
   }
@@ -230,10 +236,7 @@ class DefineElement extends HTMLElement {
     if (this._de_done) return
     this._de_done = true
     _pending.delete(this)
-    let defs = [...this.children].filter(c => {
-      let ln = c.localName
-      return ln !== 'template' && ln !== 'script' && ln !== 'style'
-    })
+    let defs = [...this.children].filter(c => c.localName.includes('-') || c.hasAttribute('is'))
     for (let def of defs) def.remove()
     this.remove()
     for (let def of defs) define(def)
